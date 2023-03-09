@@ -19,8 +19,14 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "rootDir": "./src",
+    "outDir": "dist",
+    "sourceMap": false,
+    "declaration": true,
+    "declarationDir": "dist/types",
+    "declarationMap": true,
   },
-  "include": ["vite.config.ts", "src/**/*.d.ts", "src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/*"],
+  "exclude": ["node_modules", "dist", "vite.config.ts"]
 }

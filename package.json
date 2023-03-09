@@ -1,0 +1,53 @@
+{
+  "name": "ts-utils",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "keywords": [
+    "typescript"
+  ],
+  "author": "Daniel Montilla",
+  "license": "ISC",
+  "exports": {
+    ".": {
+      "import": "./dist/main.es.js",
+      "require": "./dist/main.cjs.js"
+    }
+  },
+  "main": "./dist/main.cjs.js",
+  "module": "./dist/main.es.js",
+  "typings": "./dist/main.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/node": "^18.14.6",
+    "rollup-plugin-typescript-paths": "^1.4.0",
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.3",
+    "vite": "^4.1.0"
+  },
+  "description": "my utils",
+  "dependencies": {
+    "esbuild": "^0.16.17",
+    "estree-walker": "^2.0.2",
+    "function-bind": "^1.1.1",
+    "has": "^1.0.3",
+    "is-core-module": "^2.11.0",
+    "nanoid": "^3.3.4",
+    "picocolors": "^1.0.0",
+    "path-parse": "^1.0.7",
+    "postcss": "^8.4.21",
+    "resolve": "^1.22.1",
+    "rollup": "^3.18.0",
+    "picomatch": "^2.3.1",
+    "supports-preserve-symlinks-flag": "^1.0.0",
+    "source-map-js": "^1.0.2"
+  }
+}

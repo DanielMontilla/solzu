@@ -4,11 +4,6 @@ import typescript from "@rollup/plugin-typescript";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  resolve: {
-    alias: [
-      { find: '@', replacement: resolve(__dirname, 'src') }
-    ]
-  },
   build: {
     manifest: true,
     minify: true,

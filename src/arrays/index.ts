@@ -1,5 +1,4 @@
-/// <reference path="definitions.d.ts" />
-
+import './definitions';
 import { defineGlobals } from "../helper";
 
 defineGlobals([

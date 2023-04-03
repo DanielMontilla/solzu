@@ -3,5 +3,5 @@ A collection of useful typescript functions, types and classes. Got tired of cop
 
 ## Features
 - Rust inspired `Result` & `Option` types
-- `defineOptions` utility to recursively generate optional name parameters.
+- `defineOptions` flexible utility to generate orderless named function parameters.
 - general math stuff like `randomElementFrom` randomly pick element of array or object.

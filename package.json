@@ -1,21 +1,30 @@
 {
   "author": "Daniel Montilla montilla.d2000@gmail.com",
-  "name": "vize",
+  "name": "solzu",
   "description": "A collection of useful functions and types!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DanielMontilla/solzu"
+  },
   "private": false,
-  "version": "0.0.3",
+  "version": "0.0.1",
   "type": "module",
   "license": "ISC",
-  "main": "./dist/vize.umd.cjs",
-  "module": "./dist/vize.js",
+  "main": "./dist/solzu.umd.cjs",
+  "module": "./dist/solzu.js",
   "types": "./dist/index.d.ts",
+  "keywords": [
+    "typescript"
+  ],
   "exports": {
     ".": {
-      "import": "./dist/vize.js",
-      "require": "./dist/vize.umd.cjs"
+      "import": "./dist/solzu.js",
+      "require": "./dist/solzu.umd.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc && vite build",
     "test": "vitest"
@@ -26,5 +35,9 @@
     "vite": "^4.2.0",
     "vite-plugin-dts": "^2.1.0",
     "vitest": "^0.29.8"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/DanielMontilla/solzu/issues"
+  },
+  "homepage": "https://github.com/DanielMontilla/solzu#readme"
 }

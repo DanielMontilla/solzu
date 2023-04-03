@@ -1,4 +1,4 @@
-# Vize
+# Solzu
 A collection of useful typescript functions, types and classes. Got tired of copy pasting stuff between projects 😬
 
 ## Features

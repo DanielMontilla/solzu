@@ -1,40 +1,30 @@
 {
-  "name": "@daniel-montilla/ts-utils",
-  "description": "my utils",
+  "author": "Daniel Montilla montilla.d2000@gmail.com",
+  "name": "vize",
+  "description": "A collection of useful functions and types!",
   "private": false,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
-  "repository": "https://github.com/DanielMontilla/ts-utils",
-  "keywords": [
-    "typescript"
-  ],
-  "author": "Daniel Montilla",
   "license": "ISC",
+  "main": "./dist/vize.umd.cjs",
+  "module": "./dist/vize.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js"
+      "import": "./dist/vize.js",
+      "require": "./dist/vize.umd.cjs"
     }
   },
-  "main": ".dist/index.js",
-  "module": "./dist/index.js",
-  "typings": "./dist/types/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
-    "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
     "test": "vitest"
   },
   "devDependencies": {
-    "@rollup/plugin-typescript": "^11.0.0",
-    "@types/node": "^18.14.6",
-    "jsdom": "^21.1.0",
-    "rollup-plugin-typescript-paths": "^1.4.0",
-    "tslib": "^2.5.0",
+    "@types/node": "^18.15.11",
     "typescript": "^4.9.3",
-    "vite": "^4.1.0",
-    "vitest": "^0.29.2"
+    "vite": "^4.2.0",
+    "vite-plugin-dts": "^2.1.0",
+    "vitest": "^0.29.8"
   }
 }

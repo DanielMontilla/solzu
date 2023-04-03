@@ -1,4 +1,1 @@
-import './arrays'
-import './numbers';
-import './objects';
-import './rust';
+export * from './rust';

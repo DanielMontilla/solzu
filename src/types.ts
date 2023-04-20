@@ -4,15 +4,12 @@
  * 
  * @author Daniel Montilla
 */
-export type RecursivePartial<T> = {
-  [P in keyof T]?: RecursivePartial<T[P]>;
+export type DeepPartial<T> = {
+  [P in keyof T]?: DeepPartial<T[P]>;
 };
 
-/**
- * A utility type that creates a new type by picking the properties from `T` that are not in the `K` union and making the properties in the `K` union optional.
- * @template T - The type from which to pick properties.
- * @template K - A union of keys from `T` to make optional.
- * 
- * @author Daniel Montilla
- */
-export type PickOptional<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>> & Partial<Pick<T, K>>;
+export type ExtractOptional<T> = {
+  [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
+}
+
+export type RequiredOptional<T> = Required<ExtractOptional<T>>

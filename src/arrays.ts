@@ -20,3 +20,18 @@ export function pickRandomIndex(arr: any[]): number {
 export function pickRandomElement<T>(arr: T[]): T {
   return arr[pickRandomIndex(arr)];
 }
+
+/**
+ * @description checks if `arr` only contain unique values
+ * @returns {boolean} `true` if `arr`'s values are all diferent otherwise `false` 
+ */
+export const onlyUniques = <T>(arr: Array<T>): boolean => {
+  const set = new Set<T>();
+
+  for (const value of arr) {
+    if (set.has(value)) return false;
+    set.add(value);
+  }
+
+  return true;
+}

@@ -1,3 +1,5 @@
+import { Option, none, some } from ".";
+
 /**
  * Returns a random index within the range of the given array.
  * @param {any[]} arr - The array to pick a random index from.
@@ -5,8 +7,9 @@
  * 
  * @author Daniel Montilla
  */
-export function pickRandomIndex(arr: any[]): number {
-  return Math.floor(Math.random() * arr.length);
+export function pickRandomIndex(arr: any[]): Option<number> {
+  if (arr.length === 0) return none;
+  return some(Math.floor(Math.random() * arr.length));
 }
 
 /**
@@ -17,8 +20,12 @@ export function pickRandomIndex(arr: any[]): number {
  * 
  * @author Daniel Montilla
  */
-export function pickRandomElement<T>(arr: T[]): T {
-  return arr[pickRandomIndex(arr)];
+export function pickRandomElement<T>(arr: T[]): Option<T> {
+  const index = pickRandomIndex(arr)
+
+  return index.isSome()
+    ? some(arr[index.value])
+    : none;
 }
 
 /**

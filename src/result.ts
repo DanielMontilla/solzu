@@ -1,17 +1,17 @@
-import { NOOP, NEVER } from ".";
+import { NOOP, NEVER, None } from ".";
 
-export abstract class Result<V = unknown, E = unknown> {
+export abstract class Result<V = None, E = None> {
   protected abstract _value: V
   protected abstract _error: E
 
   public static Ok<V>(value: V): Ok<V>;
-  public static Ok<V = void>(value: void): Ok<void>;
+  public static Ok<V = None>(value: void): Ok<None>;
   public static Ok<V>(value: V) {
     return new Ok(value);
   }
 
   public static Err<E>(error: E): Err<E>;
-  public static Err<E = void>(error: void): Err<void>;
+  public static Err<E = None>(error: void): Err<None>;
   public static Err<E>(error: E) {
     return new Err(error);
   }
@@ -85,13 +85,15 @@ export function isErr<T, E>(result: Result<T, E>): result is Err<E> {
   return result instanceof Err;
 }
 
-export function match<V, E>(
+export type ResultMatch<V, E> = {
+  ok?: (value: V) => void;
+  err?: (error: E) => void;
+}
+
+export function resultMatch<V, E>(
   result: Result<V, E>,
-  branches: {
-    ok?: (value: V) => void;
-    err?: (error: E) => void;
-  }
+  matches: ResultMatch<V, E>
 ) {
-  if ((isOk(result) && branches.ok)) branches.ok(result.value);
-  if (isErr(result) && branches.err) branches.err(result.error);
+  if ((isOk(result) && matches.ok)) matches.ok(result.value);
+  if (isErr(result) && matches.err) matches.err(result.error);
 }

@@ -8,8 +8,12 @@ export type DeepPartial<T> = {
   [P in keyof T]?: DeepPartial<T[P]>;
 };
 
+export type Dictionary<K extends keyof any, T> = {
+  [P in K]?: T;
+};
+
 export type ExtractOptional<T> = {
   [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
-}
+};
 
 export type RequiredOptional<T> = Required<ExtractOptional<T>>

@@ -1,28 +1,27 @@
-import { test, expect } from 'vitest';
-import { defineOptions } from '../utility';
+import { expect, describe, it } from 'vitest';
+import { defineArgs } from '../';
 
-test('[@utilty] options', () => {
-
-  type Options = {
+describe(`defineArgs`, () => {
+  type Args = {
     a: number,
     b: boolean,
     c?: string
   }
 
-  const opts1 = defineOptions<Options>({ a: 10, b: false }, {
-    c: 'hi'
+
+  it('Defines Args [001]', () => {
+    const args = defineArgs<Args>({ a: 10, b: false }, { c: 'hi' });
+
+    expect(args.a).toBe(10);
+    expect(args.b).toBe(false);
+    expect(args.c).toBe('hi');
   });
 
-  expect(opts1.a).toBe(10);
-  expect(opts1.b).toBe(false);
-  expect(opts1.c).toBe('hi');
-
-  const opts2 = defineOptions<Options>({ a: -1, b: true, c: 'def' }, {
-    c: 'other'
+  it('Defines Args [002]', () => {
+    const args = defineArgs<Args>({ a: -1, b: true, c: 'def' }, { c: 'other' });
+  
+    expect(args.a).toBe(-1);
+    expect(args.b).toBe(true);
+    expect(args.c).toBe('def');
   });
-
-  expect(opts2.a).toBe(-1);
-  expect(opts2.b).toBe(true);
-  expect(opts2.c).toBe('def');
-
 });

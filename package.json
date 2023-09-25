@@ -7,24 +7,21 @@
     "url": "git+https://github.com/DanielMontilla/solzu"
   },
   "private": false,
-  "version": "0.0.2",
+  "version": "0.0.4",
   "type": "module",
   "license": "ISC",
   "main": "./dist/solzu.umd.cjs",
   "module": "./dist/solzu.js",
   "types": "./dist/index.d.ts",
-  "keywords": [
-    "typescript"
-  ],
+  "keywords": ["typescript"],
   "exports": {
     ".": {
       "import": "./dist/solzu.js",
-      "require": "./dist/solzu.umd.cjs"
+      "require": "./dist/solzu.umd.cjs",
+      "types": "./dist/index.d.ts"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "tsc && vite build",
     "test": "vitest"

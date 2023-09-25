@@ -1,7 +1,7 @@
-import { entries } from "../objects";
-import { RequiredOptional } from "../types";
+import { entries } from "./objects";
+import { RequiredOptional } from "./types";
 
-export function defineOptions<
+export function defineArgs<
   P extends Record<string | number | symbol, any>,
 > (
   partial: P | undefined,

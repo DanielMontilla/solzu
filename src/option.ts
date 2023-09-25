@@ -1,4 +1,4 @@
-import { NOOP, NEVER } from ".";
+import { NOOP, NEVER, Result, ResultMatch, resultMatch } from ".";
 
 export abstract class Option<V = unknown> {
   protected abstract _value: V;
@@ -7,8 +7,8 @@ export abstract class Option<V = unknown> {
     return new Some(value);
   }
 
-  public static None() {
-    return new None();
+  public static get None() {
+    return none;
   }
 
   public onSome(callback: (value: V) => any) {
@@ -19,6 +19,14 @@ export abstract class Option<V = unknown> {
   public onNone(callback: () => any) {
     if (this instanceof None) callback();
     return this;
+  }
+
+  public isNone(): this is None {
+    return isNone(this);
+  }
+
+  public isSome(): this is Some<V> {
+    return isSome(this);
   }
 
   public match({ some, none }: {
@@ -50,9 +58,7 @@ export function some<V>(value: V) {
   return new Some(value);
 }
 
-export function none() {
-  return new None();
-}
+export const none = new None();
 
 export function isSome<V>(option: Option<V>): option is Some<V> {
   return option instanceof Some;
@@ -62,14 +68,35 @@ export function isNone(option: Option<any>): option is None {
   return option instanceof None;
 }
 
-
-export function match<V>(
-  option: Option<V>,
-  branches: {
-    some?: (value: V) => void;
-    none?: () => void;
-  }
-) {
-  if ((isSome(option) && branches.some)) branches.some(option.value);
-  if (isNone(option) && branches.none) branches.none();
+export type OptionMatch<V> = {
+  some?: (value: V) => void;
+  none?: () => void;
 }
+
+export function optionMatch<V>(
+  option: Option<V>,
+  matches: OptionMatch<V>
+) {
+  if ((isSome(option) && matches.some)) matches.some(option.value);
+  if (isNone(option) && matches.none) matches.none();
+}
+
+// TODO: maybe move elsewhere
+export function match<V>(
+  input: Option<V>,
+  matches: OptionMatch<V>
+): void;
+export function match<V, E>(
+  input: Result<V, E>,
+  matches: ResultMatch<V, E>
+): void;
+export function match<V, E>(
+  input: Option<V> | Result<V, E>,
+  matches: OptionMatch<V> | ResultMatch<V, E>
+) {
+  if (input instanceof Option) {
+    optionMatch(input, matches as OptionMatch<V>);
+  } else {
+    resultMatch(input, matches as ResultMatch<V, E>);
+  }
+};

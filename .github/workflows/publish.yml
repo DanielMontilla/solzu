@@ -31,6 +31,8 @@ jobs:
       # run tests
       - run: pnpm run test
 
+      - run: pnpm run build
+
       # publishing the package to npm
       - run: pnpm publish --publish-branch publish
         env:

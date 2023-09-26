@@ -23,6 +23,14 @@ export abstract class Result<V = None, E = None> {
     return this._value;
   }
 
+  public isOk(): this is Ok<V> {
+    return isOk(this);
+  }
+
+  public isErr(): this is Err<E> {
+    return isErr(this);
+  }
+
   public onOk(callback: (value: V) => any) {
     if (this instanceof Ok) callback(this.value);
     return this;

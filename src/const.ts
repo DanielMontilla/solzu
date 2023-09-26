@@ -1,3 +1,3 @@
-export const NOOP = () => {};
+export const NOOF = () => {};
 export const NEVER = null as never;
-export const VOID = null as unknown as void;
+export const VOID = undefined as unknown as void;

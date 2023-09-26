@@ -1,71 +1,61 @@
-import { NOOP, NEVER, Result, ResultMatch, resultMatch } from ".";
+import { NOOF } from ".";
 
-export abstract class Option<V = unknown> {
-  protected abstract _value: V;
+export type Option<V> = Some<V> | None;
 
-  public static Some<V>(value: V) {
-    return new Some(value);
-  }
-
-  public static get None() {
-    return none;
-  }
-
-  public onSome(callback: (value: V) => any) {
-    if (this instanceof Some) callback(this.value);
-    return this;
-  }
-
-  public onNone(callback: () => any) {
-    if (this instanceof None) callback();
-    return this;
-  }
-
-  public isNone(): this is None {
-    return isNone(this);
-  }
-
-  public isSome(): this is Some<V> {
-    return isSome(this);
-  }
-
-  public match({ some, none }: {
-    some?: (value: V) => any,
-    none?: () => any,
-  }) {
-    return this
-      .onSome(some ?? NOOP)
-      .onNone(none ?? NOOP);
-  }
+export interface IOption<T> {
+  isSome(): this is Some<T>;
+  isNone(): this is None;
+  onSome(fn: (some: T) => any): Option<T>;
+  onNone(fn: () => any): Option<T>;
+  match(matches: OptionMatch<T>): Option<T>;
 }
 
-export class Some<V> extends Option<V> {
+export class Some<V> implements IOption<V> {
   constructor(
     protected _value: V,
-  ) { super() }
+  ) { }
 
-  get value() {
-    return this._value;
+  get value() { return this._value }
+  isSome(): this is Some<V> { return true }
+  isNone(): this is None { return false }
+  onNone(_: () => any): Option<V> { return this }
+  onSome(fn: (some: V) => any): Option<V> {
+    fn(this.value);
+    return this;
+  }
+  match(matches: OptionMatch<V>): Option<V> {
+    return this.onSome(matches.some ?? NOOF);
   }
 }
 
-export class None extends Option<never> {
-  protected _value = NEVER;
-  constructor() { super() }
+export class None implements IOption<never> {
+  constructor() { }
+  isSome(): this is Some<never> { return false }
+  isNone(): this is None { return true }
+  onSome(_: (some: never) => any): Option<never> { return this }
+  onNone(fn: () => any): Option<never> {
+    fn();
+    return this;
+  }
+  match(matches: OptionMatch<never>): Option<never> {
+    return this.onNone(matches.none ?? NOOF);
+  }
 }
 
 export function some<V>(value: V) {
   return new Some(value);
 }
 
-export const none = new None();
-
-export function isSome<V>(option: Option<V>): option is Some<V> {
-  return option instanceof Some;
+export function none() {
+  return new None();
 }
 
-export function isNone(option: Option<any>): option is None {
-  return option instanceof None;
+export function isSome<V>(option: Option<V>): option is Some<V> {
+  return option.isSome();
+}
+
+export function isNone<V>(option: Option<V>): option is None {
+  return option.isNone();
 }
 
 export type OptionMatch<V> = {
@@ -73,30 +63,29 @@ export type OptionMatch<V> = {
   none?: () => void;
 }
 
-export function optionMatch<V>(
-  option: Option<V>,
-  matches: OptionMatch<V>
-) {
-  if ((isSome(option) && matches.some)) matches.some(option.value);
-  if (isNone(option) && matches.none) matches.none();
+export function optionMatch<V>(option: Option<V>, matches: OptionMatch<V>): Option<V> {
+  return option.match(matches);
 }
 
-// TODO: maybe move elsewhere
-export function match<V>(
-  input: Option<V>,
-  matches: OptionMatch<V>
-): void;
-export function match<V, E>(
-  input: Result<V, E>,
-  matches: ResultMatch<V, E>
-): void;
-export function match<V, E>(
-  input: Option<V> | Result<V, E>,
-  matches: OptionMatch<V> | ResultMatch<V, E>
-) {
-  if (input instanceof Option) {
-    optionMatch(input, matches as OptionMatch<V>);
-  } else {
-    resultMatch(input, matches as ResultMatch<V, E>);
+type _Some<V> = Some<V>;
+type _None = None;
+
+const _SomeProxy = Some;
+const _NoneProxy = None;
+const _matchProxy = optionMatch;
+const _isSomeProxy = isSome;
+const _isNoneProxy = isNone;
+
+export namespace Option {
+  export function Some<V>(value: V): _Some<V> {
+    return new _SomeProxy(value);
   }
-};
+
+  export function None(): _None {
+    return new _NoneProxy();
+  }
+
+  export const isSome = _isSomeProxy;
+  export const isNone = _isNoneProxy;
+  export const match = _matchProxy;
+}

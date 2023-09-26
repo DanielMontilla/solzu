@@ -6,3 +6,4 @@ export * from './arrays';
 export * from './macros';
 export * from './result';
 export * from './option';
+export * from './match';

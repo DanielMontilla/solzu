@@ -1,4 +1,4 @@
-import { NOOP } from ".";
+import { NOOF } from ".";
 
 type Empty = void;
 
@@ -8,7 +8,7 @@ type Kind = 'ok' | 'err';
 type ResultValue<K extends Kind, T> = K extends 'ok' ? T : never;
 type ResultError<K extends Kind, T> = K extends 'err' ? T : never;
 
-interface IResult<K extends 'ok' | 'err', T> {
+export interface IResult<K extends Kind, T> {
   unwrap(): ResultValue<K, T>;
   isOk(): this is Ok<T>;
   isErr(): this is Err<T>;
@@ -31,7 +31,7 @@ export class Ok<V> implements IResult<'ok', V> {
     return this;
   }
   match(matches: ResultMatch<V, never>): Result<V, never> {
-   return this.onOk(matches.ok ?? NOOP); 
+   return this.onOk(matches.ok ?? NOOF); 
   }
 }
 
@@ -51,7 +51,7 @@ export class Err<E> implements IResult<'err', E> {
     return this;
   }
   public match(matches: ResultMatch<never, E>): Result<never, E> {
-    return this.onErr(matches.err ?? NOOP);
+    return this.onErr(matches.err ?? NOOF);
   }
 }
 

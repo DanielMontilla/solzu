@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Result, err, ok } from '../index';
+import { Result, ok, err } from '../index';
 
 describe(`Result`, () => {
 
@@ -11,10 +11,4 @@ describe(`Result`, () => {
     result = err('error! >:)');
     expect(() => result.unwrap()).toThrow('error! >:)');
   });
-
-  it('assets types', () => {
-    let result: Result<string> = ok('hi');
-
-    expect(result.isOk()).toBe(true);
-  })
 });

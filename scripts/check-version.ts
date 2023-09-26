@@ -11,8 +11,8 @@ const data = await response.json();
 const npmVersion = data["dist-tags"].latest;
 
 if (currentVersion <= npmVersion) {
-  console.error(`Current version (${currentVersion}) is not greater than the npm version (${npmVersion}).`);
+  console.error(`::error ::Make sure the current version (${currentVersion}) is  greater than the published version (${npmVersion})`);
   Deno.exit(1);
 } else {
-  console.log(`Current version (${currentVersion}) is greater than the npm version (${npmVersion}). Ready to publish!`);
+  console.log(`::notice ::Current version (${currentVersion} is greater than the published version (${npmVersion})!`);
 }

@@ -36,5 +36,8 @@
   "bugs": {
     "url": "https://github.com/DanielMontilla/solzu/issues"
   },
-  "homepage": "https://github.com/DanielMontilla/solzu#readme"
+  "homepage": "https://github.com/DanielMontilla/solzu#readme",
+  "publishConfig": {
+    "publish-branch": "publish"
+  }
 }

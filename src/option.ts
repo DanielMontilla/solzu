@@ -46,8 +46,9 @@ export function some<V>(value: V) {
   return new Some(value);
 }
 
+const _none = new None();
 export function none() {
-  return new None();
+  return _none;
 }
 
 export function isSome<V>(option: Option<V>): option is Some<V> {

@@ -8,7 +8,7 @@ import { Option, none, some } from ".";
  * @author Daniel Montilla
  */
 export function pickRandomIndex(arr: any[]): Option<number> {
-  if (arr.length === 0) return none;
+  if (arr.length === 0) return none();
   return some(Math.floor(Math.random() * arr.length));
 }
 
@@ -25,7 +25,7 @@ export function pickRandomElement<T>(arr: T[]): Option<T> {
 
   return index.isSome()
     ? some(arr[index.value])
-    : none;
+    : none();
 }
 
 /**

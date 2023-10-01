@@ -3,6 +3,7 @@ import { NOOF } from ".";
 export type Option<V> = Some<V> | None;
 
 export interface IOption<T> {
+  unwrap(): T;
   isSome(): this is Some<T>;
   isNone(): this is None;
   onSome(fn: (some: T) => any): Option<T>;
@@ -16,6 +17,7 @@ export class Some<V> implements IOption<V> {
   ) { }
 
   get value() { return this._value }
+  unwrap(): V { return this.value }
   isSome(): this is Some<V> { return true }
   isNone(): this is None { return false }
   onNone(_: () => any): Option<V> { return this }
@@ -30,6 +32,7 @@ export class Some<V> implements IOption<V> {
 
 export class None implements IOption<never> {
   constructor() { }
+  unwrap(): never { throw Error('Trying to unwrap a `None` value') }
   isSome(): this is Some<never> { return false }
   isNone(): this is None { return true }
   onSome(_: (some: never) => any): Option<never> { return this }

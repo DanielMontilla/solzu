@@ -8,10 +8,9 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'solzu',
       fileName: 'solzu',
-      // formats: [],
     },
     minify: true,
   },
-  plugins: [dts({ rollupTypes: true })],
+  plugins: [dts()],
   test: {},
 })

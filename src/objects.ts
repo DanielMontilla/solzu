@@ -52,3 +52,16 @@ export const toRecord = <K extends string | number | symbol, V>(entries: [K, V][
   for (const [key, value] of entries) record[key] = value;
   return record;
 }
+
+/**
+ * Check if a key exists in an object.
+ * 
+ * @param {Object} obj - The object to check within.
+ * @param {string | number | symbol} key - The key to check for.
+ * @returns {boolean} True if the key exists in the object, otherwise false.
+ * 
+ * @author Daniel Montilla
+ */
+export const keyIn = <K extends Object>(obj: K, key: string | number | symbol): key is keyof K => {
+  return key in obj;
+}

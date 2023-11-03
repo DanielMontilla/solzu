@@ -7,7 +7,7 @@
     "url": "git+https://github.com/DanielMontilla/solzu"
   },
   "private": false,
-  "version": "0.0.8",
+  "version": "0.0.9",
   "type": "module",
   "license": "ISC",
   "main": "./dist/solzu.umd.cjs",

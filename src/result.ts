@@ -84,7 +84,9 @@ export function resultMatch<V, E>(result: Result<V, E>, matches: ResultMatch<V, 
   return result.match(matches);
 }
 
-// Some typescript wizardry to have both a `Result` type and kinda static class
+
+
+
 export namespace Result {
   export function Ok<V>(value: V): _Ok<V>;
   export function Ok(value: void): _Ok<Empty>;
@@ -96,6 +98,14 @@ export namespace Result {
   export function Err(error: void): _Err<Empty>;
   export function Err<E>(error: E): _Err<E> {
     return new _ErrAlias(error);
+  }
+
+  export async function FromPromise<V, E = void>(promise: Promise<V>): Promise<_Result<V, E>> {
+    try {
+      return Ok(await promise);
+    } catch (e) {
+      return Err<E>(e as E);
+    }
   }
 
   export function isOk<V, E>(result: Result<V, E>): result is Ok<V> {
@@ -117,6 +127,7 @@ export namespace Result {
 
 type _Ok<V> = Ok<V>;
 type _Err<E> = Err<E>;
+type _Result<V, E> = Result<V, E>;
 
 const _OkAlias = Ok;
 const _ErrAlias = Err;

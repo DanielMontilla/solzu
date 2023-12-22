@@ -7,11 +7,11 @@
     "url": "git+https://github.com/DanielMontilla/solzu"
   },
   "private": false,
-  "version": "0.0.9",
+  "version": "0.0.10",
   "type": "module",
   "license": "ISC",
-  "main": "./dist/solzu.umd.cjs",
-  "module": "./dist/solzu.js",
+  "main": "./dist/solzu.js",
+  "module": "./dist/solzu.umd.cjs",
   "types": "./dist/index.d.ts",
   "keywords": ["typescript"],
   "exports": {

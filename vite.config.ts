@@ -8,6 +8,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'solzu',
       fileName: 'solzu',
+      formats: ['es', 'umd']
     },
     minify: true,
   },

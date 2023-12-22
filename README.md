@@ -8,4 +8,4 @@ A collection of useful typescript stuff. Got tired of copy pasting stuff between
 
 ### TODO
 - [ ] refactor `options.ts` for better type narrowing during flow control
-- [ ] finegrain `defineArgs` macro w/ required & options arguments
+- [ ] fine-grain `defineArgs` macro w/ required & options arguments

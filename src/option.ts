@@ -2,13 +2,17 @@ import { NOOF } from ".";
 
 export type Option<V> = Some<V> | None;
 
-export interface IOption<T> {
-  unwrap(): T;
-  isSome(): this is Some<T>;
+export interface IOption<V> {
+  unwrap(): V;
+  isSome(): this is Some<V>;
   isNone(): this is None;
-  onSome(fn: (some: T) => any): Option<T>;
-  onNone(fn: () => any): Option<T>;
-  match(matches: OptionMatch<T>): Option<T>;
+  onSome(fn: (some: V) => any): Option<V>;
+  onNone(fn: () => any): Option<V>;
+  match(matches: OptionMatch<V>): Option<V>;
+  map<SomeReturn, NoneReturn>(map: {
+    some: (value: V) => SomeReturn;
+    none: () => NoneReturn;
+  }): SomeReturn | NoneReturn;
 }
 
 export class Some<V> implements IOption<V> {
@@ -28,10 +32,14 @@ export class Some<V> implements IOption<V> {
   match(matches: OptionMatch<V>): Option<V> {
     return this.onSome(matches.some ?? NOOF);
   }
+  map<SomeReturn>(map: { some: (value: V) => SomeReturn }): SomeReturn {
+    return map.some(this.value);
+  }
 }
 
 export class None implements IOption<never> {
   constructor() { }
+
   unwrap(): never { throw Error('Trying to unwrap a `None` value') }
   isSome(): this is Some<never> { return false }
   isNone(): this is None { return true }
@@ -42,6 +50,9 @@ export class None implements IOption<never> {
   }
   match(matches: OptionMatch<never>): Option<never> {
     return this.onNone(matches.none ?? NOOF);
+  }
+  map<NoneReturn>(map: { none: () => NoneReturn }): NoneReturn {
+    return map.none();
   }
 }
 
@@ -73,6 +84,7 @@ export function optionMatch<V>(option: Option<V>, matches: OptionMatch<V>): Opti
 
 type _Some<V> = Some<V>;
 type _None = None;
+type _Option<V> = Option<V>;
 
 const _SomeProxy = Some;
 const _NoneProxy = None;
@@ -87,6 +99,14 @@ export namespace Option {
 
   export function None(): _None {
     return new _NoneProxy();
+  }
+
+  export async function FromPromise<V>(promise: Promise<V>): Promise<_Option<V>> {
+    try {
+      return Some(await promise);
+    } catch (_) {
+      return None();
+    }
   }
 
   export const isSome = _isSomeProxy;

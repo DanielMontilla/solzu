@@ -84,3 +84,7 @@ export function randomFloat(range: IntervalRange = { min: 0, max: 1 }): number {
 export function randomInt(range: IntervalRange = { min: 0, max: 1 }): number {
   return Math.round(randomFloat(range));
 }
+
+export function randomBool(): boolean {
+  return randomInt() === 0;
+}

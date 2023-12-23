@@ -4,6 +4,7 @@ export * from './random';
 export * from './objects';
 export * from './arrays';
 export * from './macros';
+export * from './either';
 export * from './result';
 export * from './option';
 export * from './match';

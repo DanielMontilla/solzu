@@ -13,7 +13,9 @@
   "main": "./dist/solzu.js",
   "module": "./dist/solzu.umd.cjs",
   "types": "./dist/index.d.ts",
-  "keywords": ["typescript"],
+  "keywords": [
+    "typescript"
+  ],
   "exports": {
     ".": {
       "import": "./dist/solzu.js",
@@ -21,13 +23,16 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc && vite build",
     "test": "vitest"
   },
   "devDependencies": {
     "@types/node": "^18.15.11",
+    "prettier": "^3.1.1",
     "typescript": "^4.9.3",
     "vite": "^4.2.0",
     "vite-plugin-dts": "^2.1.0",

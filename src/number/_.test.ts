@@ -10,7 +10,6 @@ import {
   isNonNegative,
   isPositive,
   isNonPositive,
-  tryParseNumber,
 } from ".";
 
 import { describe, it, expect } from "vitest";
@@ -94,25 +93,5 @@ describe("numberUtils", () => {
     expect(isNonPositive(0)).toBe(true);
     expect(isNonPositive(0.1)).toBe(false);
     expect(isNonPositive(1)).toBe(false);
-  });
-
-  it("tryParseNumber", () => {
-    const validValues = [
-      [1, 1],
-      ["50", 50],
-      ["1.2345", 1.2345],
-      [0xfff, 0xfff],
-      ["         3.14 ", 3.14],
-      ["1023.1f0101", 1023.1], // TODO: make this fail
-    ];
-    for (const [value, expected] of validValues) {
-      expect(tryParseNumber(value).take).not.throw;
-      expect(tryParseNumber(value).take()).toBe(expected);
-    }
-    const invalidValues = [null, NaN, "Daniel", {}];
-    for (const value of invalidValues) {
-      const res = tryParseNumber(value);
-      expect(res.isNone()).toBe(true);
-    }
   });
 });

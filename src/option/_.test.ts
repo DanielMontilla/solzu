@@ -1,17 +1,17 @@
 import { describe, it } from "vitest";
-import { Option } from ".";
+import { None, Option, Some } from ".";
 import { expect } from "vitest";
 import { isNumber, isPositive } from "../number";
 
 describe("Option", () => {
   it("Some.take", () => {
     const value = 0;
-    const opt = Option.Pure(value);
+    const opt = Option.Some(value);
     expect(opt.take()).toBe(value);
   });
 
   it("None.take", () => {
-    const opt = Option.Pure();
+    const opt = Option.None();
     expect(opt.take).toThrowError();
   });
 
@@ -36,20 +36,20 @@ describe("Option", () => {
 
   it("Some.isSome/isNone", () => {
     const value = 0;
-    const opt = Option.Pure(value);
+    const opt = Option.Of(value);
     expect(opt.isSome()).toBe(true);
     expect(opt.isNone()).toBe(false);
   });
 
   it("None.isSome/isNone", () => {
-    const opt = Option.Pure();
+    const opt = Option.Of();
     expect(opt.isSome()).toBe(false);
     expect(opt.isNone()).toBe(true);
   });
 
   it("Some.onSome/onNone", () => {
     const value = 5;
-    const opt = Option.Pure(value);
+    const opt = Option.Of(value);
 
     let foo = 0;
 
@@ -63,7 +63,7 @@ describe("Option", () => {
   });
 
   it("None.onSome/onNone", () => {
-    const opt = Option.Pure<number>();
+    const opt = Option.Of<number>();
 
     let foo = 0;
 
@@ -78,32 +78,38 @@ describe("Option", () => {
     expect(foo).toBe(value);
   });
 
-  it("Some.mapSome", () => {
-    const value = 1;
-    const mult = 2;
-    const opt = Option.Pure(0)
-      .transform(x => x + value)
-      .transform(x => x + value)
-      .transform(x => x + value)
-      .transform(x => x * mult)
-      .transform(x => `${x}`);
+  describe("Option tests", () => {
+    it("Some.mapSome", () => {
+      const value = 1;
+      const double = (x: number) => x * 2;
+      const opt = Option.Of<number>(value).mapSome(double);
+      expect(opt.take()).toBe(2);
+    });
 
-    const expected = `${value * 3 * mult}`;
+    it("None.mapSome", () => {
+      const double = (x: number) => x * 2;
+      const opt = Option.Of<number>().mapSome(double);
+      expect(opt.isNone()).toBe(true);
+    });
 
-    expect(opt.isSome()).toBe(true);
-    expect(opt.take()).toBe(expected);
-  });
+    it("Some.mapNone", () => {
+      const value = 1;
+      const opt = Option.Of<number>(value).mapNone(() => 10);
+      expect(opt.isSome()).toBe(false);
+    });
 
-  it("None.mapSome", () => {
-    const opt = Option.Pure<number>().transform(x => x * 2);
-
-    expect(opt.isNone()).toBe(true);
+    it("None.mapNone", () => {
+      const newValue = 10;
+      const opt = Option.None().mapNone(() => newValue);
+      expect(opt.isSome()).toBe(true);
+      expect(opt.take()).toBe(newValue);
+    });
   });
 
   it("Some.toResult", () => {
     const value = 0;
     const error = "error!";
-    const res = Option.Pure<number>(value).toResult(error);
+    const res = Option.Of<number>(value).toResult(error);
 
     expect(res.isOk()).toBe(true);
     expect(res.takeOk()).toBe(value);
@@ -111,7 +117,7 @@ describe("Option", () => {
 
   it("None.toResult", () => {
     const error = "error!";
-    const res = Option.Pure<number>().toResult(error);
+    const res = Option.Of<number>().toResult(error);
 
     expect(res.isErr()).toBe(true);
     expect(res.takeErr()).toBe(error);
@@ -143,9 +149,37 @@ describe("Option", () => {
 
   it("None.takeOr", () => {
     const value = 0;
-    const result = Option.Pure().takeOr(value);
+    const result = Option.Of().takeOr(value);
 
     expect(result).toBe(value);
+  });
+
+  describe("Flatten", () => {
+    it("flattens nested Some instances", () => {
+      const nestedSome = Option.Some(Option.Some(10));
+      const flattened = nestedSome.flatten();
+      expect(flattened).toBeInstanceOf(Some);
+      expect(flattened.take()).toBe(10);
+    });
+
+    it("flattens deeply nested Some instances", () => {
+      const deeplyNestedSome = Option.Some(Option.Some(Option.Some(10)));
+      const flattened = deeplyNestedSome.flatten();
+      expect(flattened).toBeInstanceOf(Some);
+      expect(flattened.take()).toBe(10);
+    });
+
+    it("returns None when flattening a None", () => {
+      const none = Option.None();
+      const flattened = none.flatten();
+      expect(flattened).toBeInstanceOf(None);
+    });
+
+    it("returns None when flattening a nested None", () => {
+      const nestedNone = Option.Some(Option.None());
+      const flattened = nestedNone.flatten();
+      expect(flattened).toBeInstanceOf(None);
+    });
   });
 
   it("FromNullable", () => {
@@ -181,5 +215,21 @@ describe("Option", () => {
 
     expect(value2).not.toBe(initial);
     expect(value2).toBe(alt);
+  });
+
+  it("Example B", () => {
+    type Person = { name: string; age?: number; awards?: string[] };
+
+    const tryGetPersonDescription = (person: Person) =>
+      Option.Of(person.age)
+        .mapSome(age => `Is ${age} years old!`)
+        .mapNone(() =>
+          Option.Of(person.awards).mapSome(
+            awards => `Has won these awards: ${awards}`
+          )
+        )
+        .flatten();
+
+    const person1: Person = { name: "Daniel" };
   });
 });

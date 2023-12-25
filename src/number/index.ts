@@ -1,6 +1,4 @@
 import type { Predicate } from "../types/index";
-import { Option } from "../option";
-import { isString } from "../string";
 
 /**
  * Checks if the value is a number and not NaN.
@@ -24,7 +22,9 @@ export const isInt = ((x: number) =>
  * @returns `true` if x is a float and not NaN, `false` otherwise.
  */
 export const isFloat = ((x: number) =>
-  Number.isFinite(x) && !Number.isInteger(x) && !Number.isNaN(x)) satisfies Predicate<number>;
+  Number.isFinite(x) &&
+  !Number.isInteger(x) &&
+  !Number.isNaN(x)) satisfies Predicate<number>;
 
 /**
  * Checks if the number is greater than the specified value.
@@ -105,19 +105,3 @@ export const isNonNegative: Predicate<number> = (x: number) => x >= 0;
  * @returns `true` if x is non-positive, `false` otherwise.
  */
 export const isNonPositive: Predicate<number> = (x: number) => x <= 0;
-
-/** TODO: docs + make into result */
-export const tryParseNumber = (value: any): Option<number> => {
-  return Option.Pure(value).compose(
-    num => num.check(isNumber),
-    str =>
-      str
-        .check(isString)
-        .transform(x => x.trim())
-        .compose(
-          x => x.transform(x => Number.parseFloat(x)).check(isNumber),
-          x => x.transform(x => Number.parseInt(x)).check(isNumber)
-        )
-        .check(isNumber)
-  );
-};

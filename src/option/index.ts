@@ -1,6 +1,6 @@
 import { isFunction } from "../function";
 import { Err, Result, Ok } from "../result";
-import type { Predicate, Transformer } from "../types/index";
+import type { Predicate, Mapper } from "../types/index";
 
 export abstract class Option<V> {
   /**
@@ -32,12 +32,16 @@ export abstract class Option<V> {
   /** Performs side effect when `Option` is `None` */
   abstract onNone(fn: () => any): Option<V>;
 
-  /** If `Option` is `Some` performs callback and sets value to `Some(value)`, otherwise remains `None` */
-  abstract transform<To>(transformer: Transformer<V, To>): Option<To>;
+  /** If `Option` is `Some` performs callback and sets return value as `Some(value)`. If `None` then it remains `None` */
+  abstract mapSome<To = V>(mapper: Mapper<V, To>): Option<To>;
 
+  /** If `Option` is `None` performs callback and sets return to `Some(value)`. If `Option` is `Some` becomes `None` */
+  abstract mapNone<To = V>(mapper: Mapper<never, To>): Option<To>;
+
+  abstract flatten(): Option.Flatten<V>;
+
+  /** If is `Some` and predicate is `true` remains as `Some(value)` otherwise becomes `None` */
   abstract check<To = V>(predicate: Predicate<V, To>): Option<To>;
-
-  abstract compose<To>(...branches: Array<(self: Option<V>) => Option<To>>): Option<To>;
 
   abstract takeOr<T = V>(fnOrValue: (() => T) | T): T | V;
   abstract toResult(error: void): Result<V, void>;
@@ -51,9 +55,16 @@ export abstract class Option<V> {
     return new None();
   }
 
-  public static Pure<V>(value?: V): Option<V> {
-    if (value !== undefined) return new Some(value);
-    return new None();
+  public static Of<V>(value?: V): Option<V> {
+    if (value === null || value === undefined) return new None();
+    return new Some(value);
+  }
+
+  public static FromNullable<V>(
+    value: V
+  ): Option<Exclude<V, null | undefined>> {
+    if (value === null || value === undefined) return new None();
+    return new Some(value as Exclude<V, null | undefined>);
   }
 
   public static async FromPromise<V>(promise: Promise<V>): Promise<Option<V>> {
@@ -70,11 +81,6 @@ export abstract class Option<V> {
     } catch (_) {
       return new None();
     }
-  }
-
-  public static FromNullable<V>(value: V): Option<Exclude<V, null | undefined>> {
-    if (value === null || value === undefined) return new None();
-    return new Some(value as Exclude<V, null | undefined>);
   }
 }
 
@@ -114,8 +120,12 @@ export class Some<V> extends Option<V> {
     return this;
   }
 
-  transform<To>(transformer: Transformer<V, To>): Option<To> {
-    return new Some(transformer(this.value));
+  mapSome<To>(mapper: Mapper<V, To>): Option<To> {
+    return new Some(mapper(this.value));
+  }
+
+  mapNone<To>(_mapper: Mapper<never, To>): Option<To> {
+    return new None();
   }
 
   check<To = V>(predicate: Predicate<V, To>): Option<To> {
@@ -126,12 +136,11 @@ export class Some<V> extends Option<V> {
     return this.value;
   }
 
-  compose<To>(...branches: ((self: Option<V>) => Option<To>)[]): Option<To> {
-    for (let i = 0; i < branches.length; i++) {
-      const result = branches[i](this);
-      if (result.isSome()) return result;
+  flatten(): Option.Flatten<V> {
+    if (this.value instanceof Option) {
+      return this.value.flatten() as Option.Flatten<V>;
     }
-    return Option.None();
+    return this as unknown as Option.Flatten<V>;
   }
 
   toResult(error: void): Ok<V>;
@@ -163,17 +172,21 @@ export class None extends Option<never> {
     return true;
   }
 
-  onSome(_: (some: never) => any): Option<never> {
+  onSome(_: (some: never) => any): None {
     return this;
   }
 
-  onNone(fn: () => any): Option<never> {
+  onNone(fn: () => any): None {
     fn();
     return this;
   }
 
-  transform<To>(_transformer: Transformer<never, To>): Option<To> {
-    return Option.None();
+  mapSome<To>(_mapper: Mapper<never, To>): None {
+    return this;
+  }
+
+  mapNone<To>(mapper: Mapper<never, To>): Some<To> {
+    return new Some(mapper());
   }
 
   check<To = never>(_predicate: Predicate<never, To>): None {
@@ -184,8 +197,9 @@ export class None extends Option<never> {
     return isFunction(fnOrValue) ? fnOrValue() : fnOrValue;
   }
 
-  compose<To>(..._branches: ((self: Option<never>) => Option<To>)[]): None {
-    return Option.None();
+  // TODO: is there any way to change this to None?
+  flatten(): never {
+    return this as never;
   }
 
   toResult(error: void): Err<void>;
@@ -195,5 +209,19 @@ export class None extends Option<never> {
 }
 
 export namespace Option {
-  export type Extract<O extends Option<any>> = O extends Option<infer U> ? U : never;
+  export type Extract<O extends Option<any>> = O extends Option<infer U>
+    ? U
+    : never;
+
+  export type Flatten<V> = V extends Option<never>
+    ? None
+    : V extends None
+      ? None
+      : V extends Option<infer U>
+        ? Flatten<U>
+        : Option<V>;
 }
+export type NestedOptions<T> = Option<Option<Option<Option<T>>>>;
+
+export type Test1 = Option.Flatten<NestedOptions<number>>;
+export type Test2 = Option.Flatten<None>;

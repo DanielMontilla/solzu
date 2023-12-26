@@ -6,22 +6,47 @@ export type Alternate<To> = Mapper<never, To>;
 
 export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
 
-/**
- * A utility type that recursively applies the `Partial` type to a given type `T`.
- * @template T - The type to be partially defined.
- *
- * @author Daniel Montilla
- */
-export type DeepPartial<T> = {
-  [P in keyof T]?: DeepPartial<T[P]>;
-};
+export type RecordKey = keyof any;
+export type GenericRecord<T = any> = Record<RecordKey, T>;
 
-export type Dictionary<K extends keyof any, T> = {
+export type Dictionary<K extends RecordKey, T> = {
   [P in K]?: T;
 };
 
-export type ExtractOptional<T> = {
+export type ExtractOptional<T extends GenericRecord> = {
   [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
 };
 
-export type RequiredOptional<T> = Required<ExtractOptional<T>>;
+export type Complete<T extends GenericRecord> = Simplify<{
+  [K in keyof T]-?: NonNullable<T[K]> extends GenericRecord
+    ? Complete<NonNullable<T[K]>>
+    : NonNullable<T[K]>;
+}>;
+
+export type ExtractOptionalDeep<T extends GenericRecord> = {
+  [K in keyof T as undefined extends T[K]
+    ? K
+    : never]?: T[K] extends GenericRecord ? ExtractOptionalDeep<T[K]> : T[K];
+} & {
+  [K in keyof T as T[K] extends GenericRecord ? K : never]: ExtractOptionalDeep<
+    T[K]
+  >;
+};
+
+export type ExtractArgs<T extends GenericRecord | undefined> = Simplify<
+  undefined extends T
+    ? Required<NonNullable<T>>
+    : Complete<
+        {
+          [K in keyof T as undefined extends T[K]
+            ? K
+            : never]: T[K] extends GenericRecord
+            ? ExtractArgs<T[K]>
+            : NonNullable<T[K]>;
+        } & {
+          [K in keyof T as T[K] extends GenericRecord ? K : never]: ExtractArgs<
+            NonNullable<T[K]>
+          >;
+        }
+      >
+>;

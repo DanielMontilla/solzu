@@ -38,28 +38,71 @@ export abstract class Option<V> {
   /** If `Option` is `None` performs callback and sets return to `Some(value)`. If `Option` is `Some` becomes `None` */
   abstract mapNone<To = V>(mapper: Mapper<never, To>): Option<To>;
 
+  /**
+   * Flattens nested `Option` types into a single `Option`.
+   * @returns A flattened `Option`, removing one level of nesting in the `Option` structure.
+   */
   abstract flatten(): Option.Flatten<V>;
 
-  /** If is `Some` and predicate is `true` remains as `Some(value)` otherwise becomes `None` */
+  /**
+   * Checks the `Option` with a predicate and turns it into `None` if the predicate is not satisfied.
+   * @param predicate - A function that evaluates to `true` or `false` given the `Option`'s value.
+   * @returns The original `Option` if the predicate is `true`, otherwise `None`.
+   * @template To The type parameter for the predicate function.
+   */
   abstract check<To = V>(predicate: Predicate<V, To>): Option<To>;
 
+  /**
+   * Returns the `Option`'s value if it's `Some`, otherwise returns the provided default value or the result of an invokable function.
+   * @param fnOrValue - The default value or function to invoke for a default value if the `Option` is `None`.
+   * @returns The value of the `Option` if it's `Some`, otherwise the default value or the result of the function.
+   * @template T The type of the default value or the return type of the function.
+   */
   abstract takeOr<T = V>(fnOrValue: (() => T) | T): T | V;
-  abstract toResult(error: void): Result<V, void>;
+
+  /**
+   * Converts the `Option` to a `Result` type, useful for error handling.
+   * @param error - The error value to use in the `Result` if the `Option` is `None`.
+   * @returns A `Result` containing the value if the `Option` is `Some`, otherwise an error.
+   * @template E The type of the error.
+   */
   abstract toResult<E>(error: E): Result<V, E>;
 
+  /**
+   * Creates a new `Some` instance with the provided value.
+   * @param value - The value to be contained in the `Some`.
+   * @returns A new `Some` instance containing the value.
+   * @template V The type of the value.
+   */
   public static Some<V>(value: V): Some<V> {
     return new Some(value);
   }
 
+  /**
+   * Creates a new `None` instance.
+   * @returns A new `None` instance.
+   */
   public static None(): None {
     return new None();
   }
 
+  /**
+   * Creates a new `Option` from a value, returning `None` for null or undefined, otherwise `Some`.
+   * @param value - The value to create an `Option` from.
+   * @returns A new `Option` instance, `None` if the value was null or undefined, otherwise `Some`.
+   * @template V The type of the value.
+   */
   public static Of<V>(value?: V): Option<V> {
     if (value === null || value === undefined) return new None();
     return new Some(value);
   }
 
+  /**
+   * Creates an `Option` from a potentially nullable value, excluding null and undefined from the type.
+   * @param value - The potentially nullable value.
+   * @returns A new `Option` instance, `None` if the value was null or undefined, otherwise `Some`.
+   * @template V The type of the value.
+   */
   public static FromNullable<V>(
     value: V
   ): Option<Exclude<V, null | undefined>> {
@@ -67,6 +110,12 @@ export abstract class Option<V> {
     return new Some(value as Exclude<V, null | undefined>);
   }
 
+  /**
+   * Creates an `Option` from a `Promise`, resolving to `Some` with the value if the promise fulfills, or `None` if it rejects.
+   * @param promise - The promise to create an `Option` from.
+   * @returns A `Promise` resolving to an `Option` of the value type.
+   * @template V The type of the value that the promise resolves to.
+   */
   public static async FromPromise<V>(promise: Promise<V>): Promise<Option<V>> {
     try {
       return new Some(await promise);
@@ -75,6 +124,12 @@ export abstract class Option<V> {
     }
   }
 
+  /**
+   * Creates an `Option` from a function that might throw, capturing the exception as `None` and the return value as `Some`.
+   * @param callback - The function to execute.
+   * @returns An `Option` of the return type of the function, `None` if the function throws.
+   * @template V The return type of the function.
+   */
   public static FromTryCatch<V>(callback: () => V): Option<V> {
     try {
       return new Some(callback());
@@ -137,14 +192,14 @@ export class Some<V> extends Option<V> {
   }
 
   flatten(): Option.Flatten<V> {
-    if (this.value instanceof Option) {
-      return this.value.flatten() as Option.Flatten<V>;
-    }
-    return this as unknown as Option.Flatten<V>;
+    return this.value instanceof Option
+      ? (this.value.flatten() as Option.Flatten<V>)
+      : (this as unknown as Option.Flatten<V>);
   }
 
   toResult(error: void): Ok<V>;
-  toResult<E>(_error?: E): Ok<V> {
+  toResult<E>(error: E): Ok<V>;
+  toResult<E>(_error: E | void): Ok<V> {
     return Result.Ok(this.value);
   }
 }
@@ -181,11 +236,11 @@ export class None extends Option<never> {
     return this;
   }
 
-  mapSome<To>(_mapper: Mapper<never, To>): None {
+  mapSome<To>(_mapper: Mapper<any, To>): None {
     return this;
   }
 
-  mapNone<To>(mapper: Mapper<never, To>): Some<To> {
+  mapNone<To>(mapper: Mapper<never, To>): Option<To> {
     return new Some(mapper());
   }
 
@@ -197,13 +252,13 @@ export class None extends Option<never> {
     return isFunction(fnOrValue) ? fnOrValue() : fnOrValue;
   }
 
-  // TODO: is there any way to change this to None?
   flatten(): never {
     return this as never;
   }
 
   toResult(error: void): Err<void>;
-  toResult<E>(error: E): Err<E> {
+  toResult<E>(error: E): Err<E>;
+  toResult<E = void>(error: E): Err<void> | Err<E> {
     return Result.Err(error);
   }
 }
@@ -213,15 +268,19 @@ export namespace Option {
     ? U
     : never;
 
-  export type Flatten<V> = V extends Option<never>
+  type AnyNone = None | Option<void>;
+  export type Flatten<V> = V extends AnyNone
     ? None
-    : V extends None
-      ? None
-      : V extends Option<infer U>
-        ? Flatten<U>
-        : Option<V>;
+    : V extends Option<infer U>
+      ? Flatten<U>
+      : Option<V>;
 }
-export type NestedOptions<T> = Option<Option<Option<Option<T>>>>;
 
-export type Test1 = Option.Flatten<NestedOptions<number>>;
-export type Test2 = Option.Flatten<None>;
+// TODO: move
+// type NestedOption<T> = Option<Option<Option<Option<T>>>>;
+// type NestedNone = Option<Option<Option<None>>>;
+
+// type Test1 = Option.Flatten<NestedOption<number>>;
+// type Test2 = Option.Flatten<NestedNone>;
+// type Test4 = Option.Flatten<void>;
+// type Test5 = Option.Flatten<None>;

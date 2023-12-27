@@ -79,6 +79,8 @@ describe("defineArgs", () => {
       prop1: number;
       prop2?: number;
     };
-    const func = (args?: FuncArgs) => {};
+    const func = (args: FuncArgs) => {
+      // const { prop1 } = defineArgs(args, { prop2: 1 });
+    };
   });
 });

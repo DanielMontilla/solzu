@@ -1,4 +1,4 @@
-import type { Predicate } from "../types/index";
+import type { Predicate } from "..";
 
 /**
  * Checks if the value is a number and not NaN.

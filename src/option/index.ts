@@ -20,22 +20,48 @@ export abstract class Option<V> {
   abstract takeWith(error: void): V;
   abstract takeWith<E>(error: E): V;
 
-  /** @returns {boolean} `true` if `Option` is `Some` otherwise `false` */
+  /**
+   * Checks if the `Option` is `Some`.
+   * @returns {boolean} `true` if `Option` is `Some`, otherwise `false`.
+   */
   abstract isSome(): this is Some<V>;
 
-  /** @returns {boolean} `true` if `Option` is `None` otherwise `false` */
+  /**
+   * Checks if the `Option` is `None`.
+   * @returns {boolean} `true` if `Option` is `None`, otherwise `false`.
+   */
   abstract isNone(): this is None;
 
-  /** Performs side effect when `Option` is `Some` */
+  /**
+   * Performs a side effect when `Option` is `Some`.
+   * @param fn - The function to execute if `Option` is `Some`.
+   * @returns The original `Option` for chaining.
+   */
   abstract onSome(fn: (value: V) => any): Option<V>;
 
-  /** Performs side effect when `Option` is `None` */
+  /**
+   * Performs a side effect when `Option` is `None`.
+   * @param fn - The function to execute if `Option` is `None`.
+   * @returns The original `Option` for chaining.
+   */
   abstract onNone(fn: () => any): Option<V>;
 
-  /** If `Option` is `Some` performs callback and sets return value as `Some(value)`. If `None` then it remains `None` */
+  /**
+   * Transforms the `Option` with a provided function if it is `Some`.
+   * If the `Option` is `None`, it remains `None`.
+   * @template To - The type parameter for the resulting `Option`.
+   * @param mapper - The function to transform the `Some` value.
+   * @returns A new `Option` with the transformed value if `Some`, otherwise `None`.
+   */
   abstract mapSome<To = V>(mapper: Mapper<V, To>): Option<To>;
 
-  /** If `Option` is `None` performs callback and sets return to `Some(value)`. If `Option` is `Some` becomes `None` */
+  /**
+   * Transforms the `Option` with a provided function if it is `None`.
+   * If the `Option` is `Some`, it becomes `None`.
+   * @template To - The type parameter for the resulting `Option`.
+   * @param mapper - The function to execute if `Option` is `None`.
+   * @returns A new `Option` with the value returned by the function if `None`, otherwise `None`.
+   */
   abstract mapNone<To = V>(mapper: Mapper<never, To>): Option<To>;
 
   /**

@@ -1,10 +1,8 @@
-import { Option, Some } from "../option";
+import { Err, Ok, Result } from "..";
 
 type Empty = void;
 
 export abstract class Either<L = Empty, R = Empty> {
-  abstract get value(): L | R;
-
   /** Extracts `Left` value directly @throws if `Either` is `Right` */
   abstract unwrapLeft(): L;
 
@@ -23,8 +21,7 @@ export abstract class Either<L = Empty, R = Empty> {
   /** Performs side effect when `Either` is `Right` */
   abstract onRight(fn: (rValue: R) => any): Either<L, R>;
 
-  /** TODO: missing tests */
-  abstract toOption(): Option<L> | Option<R>;
+  abstract toResult(): Result<L, R>;
 
   public static Left<V>(value: V): Left<V>;
   public static Left(value: void): Left<Empty>;
@@ -73,8 +70,8 @@ export class Left<L> extends Either<L, never> {
     return this;
   }
 
-  public toOption(): Some<L> {
-    return Option.Some(this.value);
+  public toResult(): Ok<L> {
+    return Result.Ok(this.value);
   }
 }
 
@@ -112,7 +109,7 @@ export class Right<R> extends Either<never, R> {
     return this;
   }
 
-  public toOption(): Some<R> {
-    return Option.Some(this.value);
+  public toResult(): Err<R> {
+    return Result.Err(this.value);
   }
 }

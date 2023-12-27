@@ -1,5 +1,5 @@
 export * from "./types";
-export * from "./objects";
+export * from "./utils";
 export * from "./macros";
 export * from "./either";
 export * from "./result";

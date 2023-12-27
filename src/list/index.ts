@@ -1,29 +1,28 @@
 import { Option } from "../option";
+import { isString } from "../string";
 
 export class List<T> {
   [index: number]: Option<T>;
 
-  private constructor(private _array: Array<T>) {}
+  private constructor(private _array: Array<T>) {
+    return new Proxy(this, {
+      get(self, property) {
+        return Option.Of(property) // create property
+          .check(isString) // check if its a string
+          .mapSome(Number.parseInt) // if it is a string parse it into number
+          .mapSome(index => self.get(index)) // if it was able to parse get the index
+          .takeOr(() => self[property as keyof typeof self]); // if none just return normal property;
+      },
+    });
+  }
 
   public get(index: number): Option<T> {
     return Option.FromNullable(this._array[index]);
   }
 
+  public set(index: number, value: T) {}
+
   public static FromArray<T>(array: Array<T>) {
-    return proxy(new List(array));
+    return new List(array);
   }
 }
-
-const proxy = <T>(instance: List<T>): List<T> => {
-  return new Proxy(instance, {
-    get(self, property) {
-      console.log("hi", typeof property);
-      if (typeof property === "number") {
-        console.log("inside");
-        return self.get(property);
-      }
-
-      return self[property as keyof typeof self];
-    },
-  });
-};

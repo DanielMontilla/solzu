@@ -1,4 +1,7 @@
 export type Predicate<In, _Out = In> = (value: In) => boolean;
+export type Predicate_<In> = (value: In) => boolean;
+export type Guard<Out> = (value: unknown) => value is Out;
+
 export type Mapper<From, To> = [From] extends [never]
   ? () => To
   : (value: From) => To;
@@ -19,15 +22,17 @@ export type ExtractOptional<T extends GenericRecord> = {
   [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
 };
 
-export type RequiredDeep<T extends GenericRecord> = Simplify<{
-  [K in keyof T]-?: NonNullable<T[K]> extends GenericRecord
-    ? RequiredDeep<NonNullable<T[K]>>
-    : NonNullable<T[K]>;
-}>;
+export type RequiredDeep<T> = T extends (...args: any) => any
+  ? NonNullable<T>
+  : {
+      [K in keyof T]-?: NonNullable<T[K]> extends GenericRecord
+        ? RequiredDeep<NonNullable<T[K]>>
+        : NonNullable<T[K]>;
+    };
 
-export type ExtractArgs<T extends GenericRecord | undefined> = Simplify<
+export type ExtractArgs<T extends GenericRecord | undefined> =
   undefined extends T
-    ? Required<NonNullable<T>>
+    ? RequiredDeep<NonNullable<T>>
     : RequiredDeep<
         {
           [K in keyof T as undefined extends T[K]
@@ -40,5 +45,4 @@ export type ExtractArgs<T extends GenericRecord | undefined> = Simplify<
             NonNullable<T[K]>
           >;
         }
-      >
->;
+      >;

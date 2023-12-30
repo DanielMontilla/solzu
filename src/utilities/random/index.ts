@@ -5,6 +5,8 @@ import {
   isInt,
   isNotEmptyArray,
   isNumber,
+  Option,
+  isMap,
 } from "../..";
 
 /**
@@ -108,7 +110,7 @@ export function nextIndex(
   array: Array<unknown>
 ): Result<number, nextIndex.Error> {
   return Result.Ok(array)
-    .checkOk(isNotEmptyArray, nextIndex.Error.EmptyArray)
+    .checkOk<nextIndex.Error>(isNotEmptyArray, "EmptyArray")
     .mapOk(nextIndexU);
 }
 
@@ -117,42 +119,38 @@ export function nextIndexU(array: Array<unknown>): number {
 }
 
 export namespace nextIndex {
-  export enum Error {
-    EmptyArray,
-  }
+  export type Error = "EmptyArray";
 }
 
 // export function nextKey<K extends RecordKey>(
 //   record: Record<K, unknown>
-// ): Result<K, nextKey.RecordError>;
-// export function nextKey<K>(map: Map<K, unknown>): Result<K, nextKey.MapError>;
-// export function nextKey<K>(set: Set<K>): Result<K, nextKey.SetError>;
-// export function nextKey(
-//   array: Array<unknown>
-// ): Result<number, nextKey.ArrayError>;
+// ): Result<K, "EmptyRecord">;
+
+// export function nextKey<K>(map: Map<K, unknown>): Result<K, "EmptyMap">;
+
+// export function nextKey<K>(set: Set<K>): Result<K, "EmptySet">;
+
+// export function nextKey(array: Array<unknown>): Result<number, nextIndex.Error>;
+
 // export function nextKey<K>(
 //   collection: K extends RecordKey
-//     ? Record<K, unknown> | Map<K, unknown> | Set<K>
+//     ? Record<K, unknown>
 //     : Map<K, unknown> | Set<K> | Array<unknown>
-// ): Result<K, nextKey.Error> {
-//   const t = Result.Ok(collection).assertOk(isArray).mapOk(nextIndex);
+// ): Result<K, nextKey.Error> | Result<number, nextIndex.Error> {
+//   if (isArray(collection)) {
+//     return Result.Ok<any[]>(collection).mapOk(nextIndex).unfold();
+//   }
+
+//   if (isMap(collection)) {
+//     const keys = [...collection.keys()];
+//     const index = nextIndex(keys);
+//     return index.isOk() ? Result.Ok(keys[index.value]) : Result.Err("EmptyMap");
+//   }
 // }
 
-// export namespace nextKey {
-//   export type Error = RecordError | MapError | SetError | ArrayError;
-//   export enum RecordError {
-//     EmptyRecord,
-//   }
-//   export enum MapError {
-//     EmptyMap,
-//   }
-//   export enum SetError {
-//     EmptySet,
-//   }
-//   export enum ArrayError {
-//     EmptyArray,
-//   }
-// }
+export namespace nextKey {
+  export type Error = "EmptyRecord" | "EmptyMap" | "EmptySet" | nextIndex.Error;
+}
 
 // export function nextElement() {}
 

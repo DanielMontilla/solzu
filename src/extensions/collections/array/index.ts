@@ -12,7 +12,7 @@ export function isArray(x: unknown): x is Array<unknown> {
  * @param {Array<any>} array The array to check.
  * @returns {boolean} True if the array is empty, false otherwise.
  */
-export function isEmptyArray(array: Array<any>) {
+export function isEmptyArray(array: Array<any>): boolean {
   return array.length === 0;
 }
 

@@ -72,6 +72,7 @@ export abstract class Option<V> {
   /**
    * Flattens nested `Option` types into a single `Option`.
    * @returns A flattened `Option`, removing one level of nesting in the `Option` structure.
+   * @experimental
    */
   abstract flatten(): Option.Flatten<V>;
 

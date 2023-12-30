@@ -46,3 +46,11 @@ export type ExtractArgs<T extends GenericRecord | undefined> =
           >;
         }
       >;
+
+export type AssertEqual<T, Expected> = [T] extends [Expected]
+  ? [Expected] extends [T]
+    ? true
+    : never
+  : never;
+
+export type Empty = void;

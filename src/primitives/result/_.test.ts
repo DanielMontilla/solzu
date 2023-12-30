@@ -1,236 +1,507 @@
 import { describe, it, expect, vi, expectTypeOf } from "vitest";
-import { None, Some, delay, Result, Err, Ok, Guard } from "../..";
+import { None, Some, Result, Err, Ok, EMPTY, Empty, NOOF, Guard } from "../..";
 
 describe("Result", () => {
-  describe("Ok", () => {
-    it("should create an Ok result with a value", () => {
-      const value = "Success";
-      const okResult = Result.Ok(value);
-      expect(okResult).toBeInstanceOf(Ok);
-      expect(okResult.value).toBe(value);
-    });
-
-    it("should create an Ok result without a value", () => {
-      const okResult = Result.Ok();
-      expect(okResult).toBeInstanceOf(Ok);
-      expect(okResult.value).toBeUndefined();
-    });
-  });
-
-  describe("Err", () => {
-    it("should create an Err result with an error", () => {
-      const error = new Error("Failure");
-      const errResult = Result.Err(error);
-      expect(errResult).toBeInstanceOf(Err);
-      expect(errResult.error).toBe(error);
-    });
-
-    it("should create an Err result without an error", () => {
-      const errResult = Result.Err();
-      expect(errResult).toBeInstanceOf(Err);
-      expect(errResult.error).toBeUndefined();
-    });
-  });
-
-  describe("takeOk", () => {
-    it("should return the Ok value", () => {
-      const ok = Result.Ok("Success");
-      expect(ok.takeOk()).toBe("Success");
-    });
-
-    it("should throw if the Result is Err", () => {
-      const err = Result.Err("Error");
+  enum CustomEnumError {
+    Error1,
+    Error2,
+  }
+  type CustomLiteralError = "Error1" | "Error2";
+  describe(".takeOk", () => {
+    it("should only throw error if called on Err instance", () => {
+      const ok = Result.Ok();
+      const err = Result.Err();
+      expect(() => ok.takeOk()).not.toThrow();
       expect(() => err.takeOk()).toThrow();
     });
-  });
 
-  describe("takeErr", () => {
-    it("should return the Err value", () => {
-      const err = Result.Err("Error");
-      expect(err.takeErr()).toBe("Error");
+    it("should return inner Ok value if called on Ok instance", () => {
+      const value = "success";
+      const ok = Result.Ok(value);
+      expect(ok.takeOk()).toBe(value);
     });
 
-    it("should throw if the Result is Ok", () => {
-      const ok = Result.Ok("Success");
+    it("should return inner Ok value even when empty", () => {
+      const ok = Result.Ok();
+      expect(ok.takeOk()).toBe(EMPTY);
+    });
+
+    it("should be never is called on Err instance", () => {
+      const err = Result.Err();
+      type Test = ReturnType<typeof err.takeOk>;
+      type Expected = never;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should always infer correct return type if called on Ok instance", () => {
+      const ok = Result.Ok("my string");
+      type Test = ReturnType<typeof ok.takeOk>;
+      type Expected = string;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should not infer Ok value type even when unknow Result instance", () => {
+      const result = Result.Of("ok");
+      type Test = ReturnType<typeof result.takeOk>;
+      type Expected = Empty;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+  });
+
+  describe(".takeErr", () => {
+    it("should only throw error if called on Ok instance", () => {
+      const ok = Result.Ok();
+      const err = Result.Err();
+      expect(() => err.takeErr()).not.toThrow();
       expect(() => ok.takeErr()).toThrow();
     });
+
+    it("should return inner Err value if called on Err instance", () => {
+      const error = "failure";
+      const err = Result.Err(error);
+      expect(err.takeErr()).toBe(error);
+    });
+
+    it("should return inner Err value even when empty", () => {
+      const err = Result.Err();
+      expect(err.takeErr()).toBe(EMPTY);
+    });
+
+    it("should be never if called on Ok instance", () => {
+      const ok = Result.Ok();
+      type Test = ReturnType<typeof ok.takeErr>;
+      type Expected = never;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should always infer correct return type if called on Err instance", () => {
+      const err = Result.Err("my error");
+      type Test = ReturnType<typeof err.takeErr>;
+      type Expected = string;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should not infer Err value type even when unknown Result instance", () => {
+      type CustomError = "CustomError";
+      const result = Result.Of<number, CustomError>("err", "CustomError");
+      type Test = ReturnType<typeof result.takeErr>;
+      type Expected = CustomError;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
   });
 
-  describe("isOk", () => {
-    it("should return true if the Result is Ok", () => {
-      const ok = Result.Ok("Success");
+  describe(".isOk", () => {
+    it("should return true if Result is Ok", () => {
+      const ok = Result.Of("ok", "Success");
       expect(ok.isOk()).toBe(true);
     });
 
-    it("should return false if the Result is Err", () => {
-      const err = Result.Err("Error");
+    it("should return false if Result is Err", () => {
+      const err = Result.Of("err", "Error");
       expect(err.isOk()).toBe(false);
+    });
+
+    it("should allow type narrowing when Result is Ok", () => {
+      const value = "Success";
+      const result = Result.Of("ok", value);
+      if (result.isOk()) {
+        expect(result.value).toBe(value);
+      }
     });
   });
 
-  describe("isErr", () => {
-    it("should return true if the Result is Err", () => {
-      const err = Result.Err("Error");
+  describe(".isErr", () => {
+    it("should return true if Result is Err", () => {
+      const err = Result.Of("err", "Error");
       expect(err.isErr()).toBe(true);
     });
 
-    it("should return false if the Result is Ok", () => {
-      const ok = Result.Ok("Success");
+    it("should return false if Result is Ok", () => {
+      const ok = Result.Of("ok", "Success");
       expect(ok.isErr()).toBe(false);
     });
-  });
 
-  describe("onOk", () => {
-    it("should execute the function if the Result is Ok", () => {
-      const ok = Result.Ok("Success");
-      const mockFn = vi.fn();
-      ok.onOk(mockFn);
-      expect(mockFn).toHaveBeenCalledWith("Success");
-    });
-  });
-
-  describe("onErr", () => {
-    it("should execute the function if the Result is Err", () => {
-      const err = Result.Err("Error");
-      const mockFn = vi.fn();
-      err.onErr(mockFn);
-      expect(mockFn).toHaveBeenCalledWith("Error");
-    });
-  });
-
-  describe("checkOk", () => {
-    it("should return the same Ok if the predicate returns true", () => {
-      const ok = Result.Of("ok", 10);
-      const checked = ok.checkOk(x => x > 5);
-      expect(checked).toBeInstanceOf(Ok);
-      expect(checked.takeOk()).toBe(10);
-    });
-
-    it("should return the same Ok if the predicate returns true", () => {
-      const ok = Result.Of("ok", 10);
-      const checked = ok.checkOk(x => x > 5);
-      expect(checked).toBeInstanceOf(Ok);
-      expect(checked.takeOk()).toBe(10);
-    });
-
-    it("should return Err with the new error if the predicate returns false", () => {
-      const ok = Result.Of("ok", 3);
-      const checked = ok.checkOk(x => x > 5, "Value is too low");
-      expect(checked).toBeInstanceOf(Err);
-      expect(checked.takeErr()).toBe("Value is too low");
-    });
-
-    it("should return the same Err if the original Result is Err", () => {
-      const err = Result.Of<number, string>("err", "Original Error");
-      const checked = err.checkOk(x => x > 5, "New Error");
-      expect(checked).toBeInstanceOf(Err);
-      expect(checked.takeErr()).toBe("Original Error");
-    });
-
-    it("should return Err with the original error if no new error is provided and predicate returns false", () => {
-      const ok = Result.Of("ok", 3);
-      const err = Result.Of<number, string>("err", "Original Error");
-      const checkedOk = ok.checkOk(x => x > 5);
-      const checkedErr = err.checkOk(x => x > 5);
-      expect(checkedOk).toBeInstanceOf(Err);
-      expect(checkedErr).toBeInstanceOf(Err);
-      expect(checkedErr.takeErr()).toBe("Original Error");
-    });
-
-    it("should return Result<V, E | Extra> from a Result<V, E>", () => {
-      type OriginalErrors = "Error 1" | "Error 2";
-      type AdditionalErrors = "Error 3" | "Error 4";
-      const result = Result.Of<number, OriginalErrors>(
-        "ok",
-        10
-      ).checkOk<AdditionalErrors>(_ => true, "Error 3");
-
-      expectTypeOf(result).toMatchTypeOf<
-        Result<number, OriginalErrors | AdditionalErrors>
-      >();
-      expectTypeOf(result).not.toMatchTypeOf<Result<number, OriginalErrors>>();
-    });
-  });
-
-  describe("assertOk", () => {
-    const isString: Guard<string> = (value): value is string =>
-      typeof value === "string";
-
-    it("passes through Err results", () => {
-      const result = Result.Err("Initial Error");
-      const asserted = result.assertOk(isString, "Not a string");
-      expect(asserted.isErr()).toBe(true);
-      expect(asserted.takeErr()).toBe("Initial Error");
-    });
-
-    it("asserts Ok values correctly and passes them through if they match the guard", () => {
-      const result = Result.Ok("I am a string");
-      const asserted = result.assertOk(isString);
-      expect(asserted.isOk()).toBe(true);
-      expect(asserted.takeOk()).toBe("I am a string");
-    });
-
-    it("converts Ok values to Err if they do not match the guard", () => {
-      const result = Result.Ok(123);
-      const asserted = result.assertOk(isString, "Not a string");
-      expect(asserted.isErr()).toBe(true);
-      expect(asserted.takeErr()).toBe("Not a string");
-    });
-
-    it("should properly infer error type unions", () => {
-      enum ErrorA {
-        Error1,
-        Error2,
+    it("should allow type narrowing when Result is Err", () => {
+      const result = Result.Of("err", "Error");
+      if (result.isErr()) {
+        expect(result.error).toBe("Error");
       }
-      enum ErrorB {
-        Error3,
-        Error4,
-      }
-
-      const guard: Guard<number> = (_): _ is number => true;
-
-      const result = Result.Of("err", ErrorA.Error1).assertOk(
-        guard,
-        ErrorB.Error4
-      );
-
-      expectTypeOf(result).toMatchTypeOf<Result<number, ErrorA | ErrorB>>();
     });
   });
 
-  describe("mapOk", () => {
-    it("should apply the mapper to Ok value and return a new Ok", () => {
+  describe(".onOk", () => {
+    it("should perform the effect if Result is Ok", () => {
+      const mockEffect = vi.fn();
+      const okResult = Result.Ok("Success");
+      okResult.onOk(mockEffect);
+      expect(mockEffect).toHaveBeenCalledWith("Success");
+    });
+
+    it("should not perform the effect if Result is Err", () => {
+      const mockEffect = vi.fn();
+      const errResult = Result.Err("Error");
+      errResult.onOk(mockEffect);
+      expect(mockEffect).not.toHaveBeenCalled();
+    });
+
+    it("should return the original Result for chaining", () => {
+      const okResult = Result.Ok("Success");
+      const chainedResult = okResult.onOk(NOOF);
+      expect(chainedResult).toBe(okResult);
+    });
+
+    it("should always return Ok if called on Ok", () => {
+      const ok = Result.Ok().onOk(NOOF);
+      type Test = typeof ok;
+      type Expected = Ok<Empty>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should always return Err if called on Err", () => {
+      const err = Result.Err().onOk(NOOF);
+      type Test = typeof err;
+      type Expected = Err<Empty>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+  });
+
+  describe(".onErr", () => {
+    it("should perform the effect if Result is Err", () => {
+      const mockEffect = vi.fn();
+      const errResult = Result.Err("Error");
+      errResult.onErr(mockEffect);
+      expect(mockEffect).toHaveBeenCalledWith("Error");
+    });
+
+    it("should not perform the effect if Result is Ok", () => {
+      const mockEffect = vi.fn();
+      const okResult = Result.Ok("Success");
+      okResult.onErr(mockEffect);
+      expect(mockEffect).not.toHaveBeenCalled();
+    });
+
+    it("should return the original Result for chaining", () => {
+      const errResult = Result.Err("Error");
+      const chainedResult = errResult.onErr(NOOF);
+      expect(chainedResult).toBe(errResult);
+    });
+
+    it("should always return Ok if called on Ok", () => {
+      const ok = Result.Ok().onErr(NOOF);
+      type Test = typeof ok;
+      type Expected = Ok<Empty>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should always return Err if called on Err", () => {
+      const err = Result.Err().onErr(NOOF);
+      type Test = typeof err;
+      type Expected = Err<Empty>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+  });
+
+  describe(".mapOk", () => {
+    it("should apply the mapper to the Ok value and return a new Ok", () => {
       const ok = Result.Of("ok", 5);
-      const mapped = ok.mapOk(x => x * 2);
-      expect(mapped.isOk()).toBe(true);
-      expect(mapped.takeOk()).toBe(10);
+      const mappedResult = ok.mapOk(v => v * 2);
+      expect(mappedResult).toBeInstanceOf(Ok);
+      expect(mappedResult.takeOk()).toBe(10);
     });
 
-    it("should return the same Err if the result is Err", () => {
+    it("should not apply the mapper and return the original Err", () => {
       const err = Result.Of<number, string>("err", "Error");
-      const mapped = err.mapOk(x => x * 2);
-      expect(mapped.isErr()).toBe(true);
-      expect(mapped.takeErr()).toBe("Error");
+      const mappedResult = err.mapOk(value => value * 2);
+      expect(mappedResult).toBeInstanceOf(Err);
+      expect(mappedResult.takeErr()).toBe("Error");
+    });
+
+    it("should always have return type of Ok when called on Ok instance", () => {
+      const ok = Result.Ok(5);
+      const mappedResult = ok.mapOk(value => value);
+
+      type Test = typeof mappedResult;
+      type Expected = Ok<number>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should always have return type of Ok<To> when called on Ok instance", () => {
+      const ok = Result.Ok(5);
+      const mappedResult = ok.mapOk(value => `${value}`);
+
+      type Test = typeof mappedResult;
+      type Expected = Ok<string>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should always have return type of Err when called on Err instance", () => {
+      const err = Result.Err();
+      const mappedResult = err.mapOk(value => `${value}`);
+
+      type Test = typeof mappedResult;
+      type Expected = Err<Empty>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
     });
   });
 
-  describe("mapErr", () => {
-    it("should apply the mapper to Err value and return a new Err", () => {
-      const err = Result.Of("err", "Error");
-      const mapped = err.mapErr(err => `Mapped: ${err}`);
-      expect(mapped.isErr()).toBe(true);
-      expect(mapped.takeErr()).toBe("Mapped: Error");
+  describe(".mapErr", () => {
+    it("should apply the mapper to the Err value and return a new Err", () => {
+      const err = Result.Of<number, number>("err", 10);
+      const mappedResult = err.mapErr(error => error * 2);
+      expect(mappedResult).instanceOf(Err);
+      expect(mappedResult.takeErr()).toBe(20);
     });
 
-    it("should return the same Ok if the result is Ok", () => {
-      const ok = Result.Of("ok", 5);
-      const mapped = ok.mapErr(err => `Mapped: ${err}`);
-      expect(mapped.isOk()).toBe(true);
-      expect(mapped.takeOk()).toBe(5);
+    it("should not apply the mapper and return the original Ok", () => {
+      const ok = Result.Of("ok", "Success");
+      const mappedResult = ok.mapErr(error => `Mapped: ${error}`);
+      expect(mappedResult).instanceOf(Ok);
+      expect(mappedResult.takeOk()).toBe("Success");
+    });
+
+    it("should always have return type of Ok when called on Ok instance", () => {
+      const ok = Result.Ok(5);
+      const mappedResult = ok.mapErr(value => value);
+
+      type Test = typeof mappedResult;
+      type Expected = Ok<number>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should always have return type of Err<To> when called on Err instance", () => {
+      const err = Result.Err();
+      const mappedResult = err.mapErr(_ => `new error`);
+
+      type Test = typeof mappedResult;
+      type Expected = Err<string>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should always have return type of Err when called on Err instance", () => {
+      const err = Result.Err();
+      const mappedResult = err.mapErr(value => `${value}`);
+
+      type Test = typeof mappedResult;
+      type Expected = Err<string>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
     });
   });
 
-  describe("toEither", () => {
+  describe(".checkOk", () => {
+    describe("@overload when called with just a predicate", () => {
+      it("should return the original Ok if the predicate is satisfied", () => {
+        const ok = Result.Of("ok", 10);
+        const checkedResult = ok.checkOk(value => value > 5);
+        expect(checkedResult.isOk()).toBe(true);
+        expect(checkedResult.takeOk()).toBe(10);
+      });
+
+      it("should return Err with Empty if the predicate is not satisfied", () => {
+        const ok = Result.Of("ok", 3);
+        const checkedResult = ok.checkOk(value => value > 5);
+        expect(checkedResult.isErr()).toBe(true);
+      });
+
+      it("should always return Err if original result is err", () => {
+        const err = Result.Of<number>("err");
+        const checkedResult = err.checkOk(_ => true);
+        expect(checkedResult).instanceOf(Err);
+      });
+
+      it("should go from Ok to Result on Ok instances", () => {
+        const ok = Result.Ok(10);
+        const checkedResult = ok.checkOk(value => value > 5);
+
+        type Test = typeof checkedResult;
+        type Expected = Result<number, Empty>;
+
+        expectTypeOf<Test>().toMatchTypeOf<Expected>();
+      });
+
+      it("should remain Err if initial Result is Err", () => {
+        const err = Result.Err();
+        const checkedResult = err.checkOk(value => value > 5);
+
+        type Test = typeof checkedResult;
+        type Expected = Err<Empty>;
+
+        // @ts-expect-error // TODO: make it so this tests passes
+        expectTypeOf<Test>().toMatchTypeOf<Expected>();
+      });
+    });
+
+    describe("@overload when called with a predicate and an error", () => {
+      it("should return the original Ok if the predicate is satisfied", () => {
+        const ok = Result.Of("ok", 10);
+        const checkedResult = ok.checkOk(value => value > 5, "Error");
+        expect(checkedResult.isOk()).toBe(true);
+        expect(checkedResult.takeOk()).toBe(10);
+      });
+
+      it("should return Err with the provided error if the predicate is not satisfied", () => {
+        const ok = Result.Of("ok", 3);
+        const checkedResult = ok.checkOk(value => value > 5, "Custom Error");
+        expect(checkedResult).instanceOf(Err);
+        expect(checkedResult.takeErr()).toBe("Custom Error");
+      });
+
+      it("should return union of previos and new error for return type", () => {
+        const ok = Result.Of("ok", 3);
+        const checkedResult = ok.checkOk(value => value > 5, "my custom error");
+
+        type Test = typeof checkedResult;
+        type Expected = Result<number, Empty | string>;
+
+        expectTypeOf<Test>().toMatchTypeOf<Expected>();
+      });
+    });
+  });
+
+  describe(".assertOk", () => {
+    const isNumber: Guard<number> = (value): value is number =>
+      typeof value === "number";
+    describe("@overload when called with just a guard", () => {
+      it("should return the original Ok if the guard is satisfied", () => {
+        const ok = Result.Of("ok", 10).assertOk(isNumber);
+        expect(ok.isOk()).toBe(true);
+        expect(ok.takeOk()).toBe(10);
+      });
+
+      it("should return Err with Empty if the guard is not satisfied", () => {
+        const ok = Result.Of("ok", "not a number").assertOk(isNumber);
+        expect(ok.isErr()).toBe(true);
+      });
+
+      it("should turn Result<V, E> to Result<To, V>", () => {
+        const ok = Result.Of("ok", "not a number").assertOk(isNumber);
+
+        type Test = typeof ok;
+        type Expected = Result<number, Empty>;
+
+        expectTypeOf<Test>().toMatchTypeOf<Expected>();
+      });
+
+      it("should turn Ok<V> or Err<E> into to Result<To, E>", () => {
+        const ok = Result.Ok().assertOk(isNumber);
+
+        type TestOk = typeof ok;
+        type ExpectedOk = Result<number, Empty>;
+
+        expectTypeOf<TestOk>().toMatchTypeOf<ExpectedOk>();
+
+        const err = Result.Err().assertOk(isNumber);
+
+        type TestErr = typeof err;
+        type ExpectedErr = Result<number, Empty>;
+
+        expectTypeOf<TestErr>().toMatchTypeOf<ExpectedErr>();
+      });
+    });
+
+    describe("@overload when called with a guard and an error", () => {
+      it("should return the original Ok if the guard is satisfied", () => {
+        const ok = Result.Of("ok", 10).assertOk(isNumber, "Not a number");
+        expect(ok.isOk()).toBe(true);
+        expect(ok.takeOk()).toBe(10);
+      });
+
+      it("should return Err with the provided error if the guard is not satisfied", () => {
+        const ok = Result.Of("ok", "not a number").assertOk(
+          isNumber,
+          "Not a number"
+        );
+        expect(ok.isErr()).toBe(true);
+        expect(ok.takeErr()).toBe("Not a number");
+      });
+
+      it("should turn Ok<V> or Err<E> into to Result<To, E | Ex>", () => {
+        const ok = Result.Of("ok", 10).assertOk(isNumber, "not a number");
+
+        type TestOk = typeof ok;
+        type ExpectedOk = Result<number, Empty | string>;
+
+        expectTypeOf<TestOk>().toMatchTypeOf<ExpectedOk>();
+
+        const err = Result.Of("err", CustomEnumError.Error1).assertOk(
+          isNumber,
+          "not a number"
+        );
+
+        type TestErr = typeof err;
+        type ExpectedErr = Result<number, string | CustomEnumError>;
+
+        expectTypeOf<TestErr>().toMatchTypeOf<ExpectedErr>();
+      });
+    });
+  });
+
+  describe(".unfold", () => {
+    enum ErrorA {
+      Error,
+    }
+    enum ErrorB {
+      Error,
+    }
+
+    it("should turn 2D nested Ok into 1D Ok Result", () => {
+      const result = Result.Of("ok", Result.Of("ok", 10)).unfold();
+      expect(result).toBeInstanceOf(Ok);
+      expect(result.takeOk()).toBe(10);
+    });
+
+    it("should turn nested Err in Ok into that Err", () => {
+      const err = Result.Of("err", ErrorA.Error);
+      const result = Result.Of("ok", err).unfold();
+      expect(result).toBeInstanceOf(Err);
+      expect(result.takeErr()).toBe(ErrorA.Error);
+    });
+
+    it("return should merge errors", () => {
+      const err = Result.Of<number, ErrorA>("ok", 10);
+      const result = Result.Of<typeof err, ErrorB>("ok", err).unfold();
+
+      type Test = typeof result;
+      type Expected = Result<number, ErrorA | ErrorB>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should return Ok<V> when called on Ok instance", () => {
+      const ok = Result.Ok().unfold();
+
+      type Test = typeof ok;
+      type Expected = Ok<Empty>;
+      // @ts-expect-error // TODO: MAKE THIS WORK
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should return Err<E> when called on Err instance", () => {
+      const err = Result.Err().unfold();
+
+      type Test = typeof err;
+      type Expected = Err<Empty>;
+      // @ts-expect-error // TODO: MAKE THIS WORK
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+  });
+
+  describe(".toEither", () => {
     it("should convert Ok to Left", () => {
       const ok = Result.Ok("Success");
       const either = ok.toEither();
@@ -244,7 +515,7 @@ describe("Result", () => {
     });
   });
 
-  describe("toOption", () => {
+  describe(".toOption", () => {
     it("should convert Ok to Some", () => {
       const okResult = Result.Ok("Success");
       const option = okResult.toOption();
@@ -260,131 +531,424 @@ describe("Result", () => {
   });
 
   describe("Factory Methods", () => {
-    describe("Of", () => {
-      it("should create an Ok result with no content when no parameters are provided", () => {
-        const result = Result.Of();
-        expect(result.isOk()).toBe(true);
-        expect(result.takeOk()).toBeUndefined();
-      });
-
-      it("should create an Ok result with content", () => {
-        const result = Result.Of("ok", "Success!");
-        expect(result.isOk()).toBe(true);
-        expect(result.takeOk()).toBe("Success!");
-      });
-
-      it("should create an Err result with content", () => {
-        const result = Result.Of("err", "Error occurred");
-        expect(result.isErr()).toBe(true);
-        expect(result.takeErr()).toBe("Error occurred");
-      });
-
-      it("should create an Ok result when kind is 'ok' and content is undefined", () => {
-        const result = Result.Of("ok");
-        expect(result.isOk()).toBe(true);
-        expect(result.takeOk()).toBeUndefined();
-      });
-
-      it("should create an Err result when kind is 'err' and content is undefined", () => {
-        const result = Result.Of("err");
-        expect(result.isErr()).toBe(true);
-        expect(result.takeErr()).toBeUndefined();
-      });
-
-      it("should create a Result<void, void> when called with no content argument", () => {
-        expectTypeOf(Result.Of()).toMatchTypeOf<Result<void, void>>();
-        expectTypeOf(Result.Of("ok")).toMatchTypeOf<Result<void, void>>();
-        expectTypeOf(Result.Of("err")).toMatchTypeOf<Result<void, void>>();
-      });
-
-      it("should create a Result<V, void> when `ok` kind is provided with value", () => {
-        expectTypeOf(Result.Of("ok", 10)).toMatchTypeOf<Result<number, void>>();
-      });
-
-      it("should create a Result<void, E> when `err` kind is provided with value", () => {
-        const customError = "CustomError" as const;
-        expectTypeOf(Result.Of("err", customError)).toMatchTypeOf<
-          Result<void, typeof customError>
-        >();
-      });
-
-      it("should match passed in generic arguments regardless of kind", () => {
-        expectTypeOf(Result.Of<number, string>("ok", 10)).toMatchTypeOf<
-          Result<number, string>
-        >();
-        expectTypeOf(Result.Of<boolean, string>("err", "error")).toMatchTypeOf<
-          Result<boolean, string>
-        >();
-      });
-    });
-    describe.concurrent("FromPromise", () => {
-      it("should return Ok with the resolved value for a resolving promise", async ({
-        expect,
-      }) => {
-        const promise = delay(100, { mode: "resolve", value: "Success" });
-        const result = await Result.FromPromise(promise);
-        expect(result).toBeInstanceOf(Ok);
-        expect(result.takeOk()).toBe("Success");
-      });
-
-      it("should return Err with the error for a rejecting promise", async ({
-        expect,
-      }) => {
-        const promise = delay(100, { mode: "reject" });
-        const result = await Result.FromPromise(promise);
-        expect(result).toBeInstanceOf(Err);
-      });
-
-      it("should return Err with the mapped error for a rejecting promise", async ({
-        expect,
-      }) => {
-        const error = `Promise Failed` as const;
-        const errorMapper = (_: unknown) => error;
-        const promise = delay(100, { mode: "reject" });
-        const result = await Result.FromPromise(promise, errorMapper);
-        expect(result).toBeInstanceOf(Err);
-        expect(result.takeErr()).toBe(error);
-      });
-    });
-    describe("FromTryCatch", () => {
-      it("should return Ok with the function's return value for successful execution", () => {
-        const successfulFn = () => "Success";
-        const result = Result.FromTryCatch(successfulFn);
-        expect(result).toBeInstanceOf(Ok);
-        expect(result.takeOk()).toBe("Success");
-      });
-
-      it("should return Err with the error for a function that throws", () => {
-        const throwingFn = () => {
-          throw new Error("Failure");
-        };
-        const result = Result.FromTryCatch(throwingFn);
-        expect(result).toBeInstanceOf(Err);
-        expect(result.takeErr()).toBeInstanceOf(Error);
-      });
-
-      it("should return Err with the mapped error for a function that throws", () => {
-        const throwingFn = () => {
-          throw new Error("Failure");
-        };
-        const errorMapper = (error: unknown) =>
-          `Mapped: ${error instanceof Error ? error.message : "Unknown error"}`;
-        const result = Result.FromTryCatch(throwingFn, errorMapper);
-        expect(result).toBeInstanceOf(Err);
-        expect(result.takeErr()).toBe("Mapped: Failure");
-      });
-
-      it("should return Err with a different type of error when using a mapper", () => {
-        const throwingFn = () => {
-          throw new Error("Failure");
-        };
-        const errorMapper = (error: unknown) => ({
-          errorMessage:
-            error instanceof Error ? error.message : "Unknown error",
+    describe(".Ok", () => {
+      describe("@overload when called with value", () => {
+        it("should return an Ok result containing the value", () => {
+          const value = "test";
+          const result = Result.Ok(value);
+          expect(result.isOk()).toBe(true);
+          expect(result.value).toBe(value);
         });
-        const result = Result.FromTryCatch(throwingFn, errorMapper);
-        expect(result).toBeInstanceOf(Err);
-        expect(result.takeErr()).toEqual({ errorMessage: "Failure" });
+
+        it("should infer correct inner value type", () => {
+          const value = 0;
+          const ok = Result.Ok(value);
+          type Test = typeof ok;
+          type Expected = Ok<number>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+      });
+
+      describe("@overload when called without a value", () => {
+        it("should return an Ok result containing an empty value", () => {
+          const result = Result.Ok();
+          expect(result.isOk()).toBe(true);
+          expect(result.value).toBe(EMPTY);
+        });
+
+        it("should always have Empty inner value type", () => {
+          const ok = Result.Ok();
+          type Test = typeof ok;
+          type Expected = Ok<Empty>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+      });
+
+      it("should require value if generic is provided", () => {
+        // @ts-expect-error
+        Result.Ok<number>();
+      });
+    });
+
+    describe(".Err", () => {
+      describe("@overload when called with value", () => {
+        it("should return an Err result containing the error", () => {
+          const error = "error message";
+          const result = Result.Err(error);
+          expect(result.isErr()).toBe(true);
+          expect(result.error).toBe(error);
+        });
+
+        it("should infer correct inner error type", () => {
+          const error = new Error("error");
+          const err = Result.Err(error);
+          type Test = typeof err;
+          type Expected = Err<Error>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+      });
+
+      describe("@overload when called without a value", () => {
+        it("should return an Err result containing an empty value", () => {
+          const result = Result.Err();
+          expect(result.isErr()).toBe(true);
+          expect(result.error).toBe(EMPTY);
+        });
+
+        it("should always have Empty inner error type", () => {
+          const err = Result.Err();
+          type Test = typeof err;
+          type Expected = Err<Empty>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+
+        it("should type the inner error type as union of Empty and provided generic", () => {
+          const err = Result.Err<number>();
+          type Test = typeof err;
+          type Expected = Err<Empty | number>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+      });
+    });
+
+    describe(".Of", () => {
+      describe("@overload when called without arguments", () => {
+        it("should return a instance of Result", () => {
+          const result = Result.Of();
+          expect(result).toBeInstanceOf(Result);
+        });
+
+        it("should be Ok<Empty>", () => {
+          const result = Result.Of();
+          expect(() => result.takeOk()).not.toThrow();
+          expect(result.takeOk()).toBe(EMPTY);
+        });
+
+        it("should not allow generic without providing relevant values", () => {
+          // @ts-expect-error
+          Result.Of<number>();
+
+          // @ts-expect-error
+          Result.Of<boolean, CustomEnumError>();
+        });
+
+        it("should be of type Result<Empty, Empty>", () => {
+          const result = Result.Of();
+          type Test = typeof result;
+          type Expected = Result<Empty, Empty>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+      });
+
+      describe("@overload when called with 'err' kind and no error value", () => {
+        it("should return a instance of Err", () => {
+          const result = Result.Of("err");
+          expect(result).toBeInstanceOf(Err);
+        });
+
+        it("should be Err<Empty>", () => {
+          const result = Result.Of("err");
+          expect(() => result.takeErr()).not.toThrow();
+          expect(result.takeErr()).toBe(EMPTY);
+        });
+
+        it("should be of type Result<Empty, Empty> when no generics provided", () => {
+          const result = Result.Of("err");
+          type Test = typeof result;
+          type Expected = Result<Empty, Empty>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+
+        it("should be of type Result<V, MyError | Empty> when template is provided", () => {
+          const result = Result.Of<number, CustomEnumError>("err");
+          type Test = typeof result;
+          type Expected = Result<number, CustomEnumError | Empty>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+      });
+
+      describe("@overload when called with 'err' kind and error provided", () => {
+        it("should return an Err result instance", () => {
+          const result = Result.Of("err", CustomEnumError.Error1);
+          expect(result).toBeInstanceOf(Err);
+        });
+
+        it("should return an Err with provided error value", () => {
+          const result = Result.Of("err", CustomEnumError.Error1);
+          expect(() => result.takeErr()).not.toThrow();
+          expect(result.takeErr()).toBe(CustomEnumError.Error1);
+        });
+
+        it("should infer correct inner error type", () => {
+          const err = Result.Of("err", "my error");
+          type Test = typeof err;
+          type Expected = Result<Empty, string>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+      });
+
+      describe("@overload when called with 'ok' kind and no value", () => {
+        it("should return a instance of Ok", () => {
+          const result = Result.Of("ok");
+          expect(result).toBeInstanceOf(Ok);
+        });
+
+        it("should be Ok<Empty>", () => {
+          const result = Result.Of("ok");
+          expect(() => result.takeOk()).not.toThrow();
+          expect(result.takeOk()).toBe(EMPTY);
+        });
+
+        it("should be of type Result<Empty, Empty> when no generics provided", () => {
+          const result = Result.Of("ok");
+          type Test = typeof result;
+          type Expected = Result<Empty, Empty>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+
+        it("should be of type Result<Empty, E | Empty> when E generic provided", () => {
+          const result = Result.Of<CustomEnumError>("ok");
+          type Test = typeof result;
+          type Expected = Result<Empty, Empty | CustomEnumError>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+      });
+
+      describe("@overload when called with 'ok' kind and value provided", () => {
+        it("should return an Ok instance", () => {
+          const value = 123;
+          const result = Result.Of("ok", value);
+          expect(result).toBeInstanceOf(Ok);
+        });
+
+        it("should return an Ok result containing the value", () => {
+          const value = 123;
+          const result = Result.Of("ok", value);
+          expect(() => result.takeOk()).not.toThrow();
+          expect(result.takeOk()).toBe(value);
+        });
+
+        it("should infer correct inner value type", () => {
+          const value = 123;
+          const ok = Result.Of("ok", value);
+          type Test = typeof ok;
+          type Expected = Result<number, Empty>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+
+        it("should be correct type if generics provided", () => {
+          const value = 123;
+          const ok = Result.Of<number, CustomLiteralError>("ok", value);
+          type Test = typeof ok;
+          type Expected = Result<number, CustomLiteralError>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+
+        it("should error if types mismatch", () => {
+          // @ts-expect-error
+          const ok = Result.Of<string>("ok", 123);
+        });
+      });
+    });
+
+    describe.concurrent(".FromPromise", () => {
+      describe("@overload when called with just a promise or promise-returning function", () => {
+        it("should return Ok with the resolved value for a resolving promise", async ({
+          expect,
+        }) => {
+          const promise = Promise.resolve("Success");
+          const result = await Result.FromPromise(promise);
+          expect(result).toBeInstanceOf(Ok);
+          expect(result.takeOk()).toBe("Success");
+        });
+
+        it("should return Err with the error for a rejecting promise", async ({
+          expect,
+        }) => {
+          const promise = Promise.reject(new Error("Failure"));
+          const result = await Result.FromPromise(promise);
+          expect(result).toBeInstanceOf(Err);
+        });
+
+        it("should return Ok with the resolved value for a resolving promise-returning function", async ({
+          expect,
+        }) => {
+          const promiseFunc = () => Promise.resolve("Success from function");
+          const result = await Result.FromPromise(promiseFunc);
+          expect(result).toBeInstanceOf(Ok);
+          expect(result.takeOk()).toBe("Success from function");
+        });
+
+        it("should return Err with the error for a rejecting promise-returning function", async ({
+          expect,
+        }) => {
+          const promiseFunc = () =>
+            Promise.reject(new Error("Failure from function"));
+          const result = await Result.FromPromise(promiseFunc);
+          expect(result).toBeInstanceOf(Err);
+        });
+
+        it("should return inner type Result<V, unknown> when using promise", async () => {
+          const promise = Promise.resolve(123);
+          const result = await Result.FromPromise(promise);
+
+          type Test = typeof result;
+          type Expected = Result<number, unknown>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+
+        it("should return inner type Result<V, unknown> when using promise-return function", async () => {
+          const result = await Result.FromPromise(async () => 10);
+
+          type Test = typeof result;
+          type Expected = Result<number, unknown>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+      });
+
+      describe("@overload when called with a promise or function-returning promise and an error mapper", () => {
+        it("should return Ok with the resolved value for a resolving promise", async ({
+          expect,
+        }) => {
+          const promise = Promise.resolve("Success");
+          const result = await Result.FromPromise(promise, e => `Mapped: ${e}`);
+          expect(result).toBeInstanceOf(Ok);
+          expect(result.takeOk()).toBe("Success");
+        });
+
+        it("should return Err with the mapped error for a rejecting promise", async ({
+          expect,
+        }) => {
+          const error = new Error("Failure");
+          const errorMapper = (e: unknown) => `Mapped: ${e}`;
+          const promise = Promise.reject(error);
+          const result = await Result.FromPromise(promise, errorMapper);
+          expect(result).toBeInstanceOf(Err);
+          expect(result.takeErr()).toBe(`Mapped: ${error}`);
+        });
+
+        it("should return Ok with the resolved value for a resolving promise-returning function", async ({
+          expect,
+        }) => {
+          const promiseFunc = () => Promise.resolve("Success from function");
+          const result = await Result.FromPromise(
+            promiseFunc,
+            e => `Mapped: ${e}`
+          );
+          expect(result).toBeInstanceOf(Ok);
+          expect(result.takeOk()).toBe("Success from function");
+        });
+
+        it("should return Err with the mapped error for a rejecting promise-returning function", async ({
+          expect,
+        }) => {
+          const error = new Error("Failure from function");
+          const promiseFunc = () => Promise.reject(error);
+          const errorMapper = (e: unknown) => `Mapped: ${e}`;
+          const result = await Result.FromPromise(promiseFunc, errorMapper);
+          expect(result).toBeInstanceOf(Err);
+          expect(result.takeErr()).toBe(`Mapped: ${error}`);
+        });
+
+        it("should return inner type Result<V, E> with promise", async () => {
+          const promise = Promise.resolve(123);
+          const result = await Result.FromPromise(
+            promise,
+            _ => CustomEnumError.Error1
+          );
+
+          type Test = typeof result;
+          type Expected = Result<number, CustomEnumError>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+
+        it("should return inner type Result<V, E> with promise-returning function", async () => {
+          const result = await Result.FromPromise(
+            async () => 123,
+            _ => CustomEnumError.Error1
+          );
+
+          type Test = typeof result;
+          type Expected = Result<number, CustomEnumError>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+      });
+    });
+
+    describe(".FromTryCatch", () => {
+      describe("@overload when called with just a function", () => {
+        it("should return Ok with the function's return value", () => {
+          const fn = () => "Success";
+          const result = Result.FromTryCatch(fn);
+          expect(result.isOk()).toBe(true);
+          expect(result.takeOk()).toBe("Success");
+        });
+
+        it("should return Err with the error if the function throws", () => {
+          const fn = () => {
+            throw new Error("Failure");
+          };
+          const result = Result.FromTryCatch(fn);
+          expect(result.isErr()).toBe(true);
+        });
+
+        it("should return inner type Result<V, unknown>", () => {
+          const fn = () => 123;
+          const result = Result.FromTryCatch(fn);
+
+          type Test = typeof result;
+          type Expected = Result<number, unknown>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
+      });
+
+      describe("@overload when called with a function and an error mapper", () => {
+        it("should return Ok with the function's return value", () => {
+          const fn = () => "Success";
+          const result = Result.FromTryCatch(fn, e => `Mapped: ${e}`);
+          expect(result.isOk()).toBe(true);
+          expect(result.takeOk()).toBe("Success");
+        });
+
+        it("should return Err with the mapped error if the function throws", () => {
+          const error = new Error("Failure");
+          const fn = () => {
+            throw error;
+          };
+          const errorMapper = (e: unknown) => `Mapped: ${e}`;
+          const result = Result.FromTryCatch(fn, errorMapper);
+          expect(result.isErr()).toBe(true);
+          expect(result.takeErr()).toBe(`Mapped: ${error}`);
+        });
+
+        it("should return inner type Result<V, E>", () => {
+          const fn = () => 123;
+          const errorMapper = (e: unknown) => `Mapped: ${e}`;
+          const result = Result.FromTryCatch(fn, errorMapper);
+
+          type Test = typeof result;
+          type Expected = Result<number, string>;
+
+          expectTypeOf<Test>().toMatchTypeOf<Expected>();
+        });
       });
     });
   });

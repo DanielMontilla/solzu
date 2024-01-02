@@ -167,6 +167,11 @@ describe("Object Utilities", () => {
       expect(isRecord(new MyClass())).toBe(false);
     });
 
+    it("should return false for map instances", () => {
+      const map = new Map();
+      expect(isRecord(map)).toBe(false);
+    });
+
     it("should return false for null", () => {
       expect(isRecord(null)).toBe(false);
     });

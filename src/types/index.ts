@@ -1,6 +1,7 @@
 export type Predicate<In, _Out = In> = (value: In) => boolean;
 export type Predicate_<In> = (value: In) => boolean;
 export type Guard<Out> = (value: unknown) => value is Out;
+export type Assertion<In, Out extends In> = (value: In) => value is Out;
 
 export type Mapper<From, To> = [From] extends [never]
   ? () => To
@@ -10,6 +11,7 @@ export type Alternate<To> = Mapper<never, To>;
 export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
 
 export type RecordKey = keyof any;
+export type AnyRecord = Record<RecordKey, any>;
 export type GenericRecord<T = any> = Record<RecordKey, T>;
 export type Entry<K extends RecordKey, V> = [K, V];
 export type Entries<K extends RecordKey, V> = Array<Entry<K, V>>;

@@ -1,5 +1,16 @@
 import { describe, it, expect, vi, expectTypeOf } from "vitest";
-import { None, Some, Result, Err, Ok, EMPTY, Empty, NOOF, Guard } from "../..";
+import {
+  None,
+  Some,
+  Result,
+  Err,
+  Ok,
+  EMPTY,
+  Empty,
+  NOOF,
+  Guard,
+  Assertion,
+} from "../..";
 
 describe("Result", () => {
   enum CustomEnumError {
@@ -374,8 +385,9 @@ describe("Result", () => {
   });
 
   describe(".assertOk", () => {
-    const isNumber: Guard<number> = (value): value is number =>
+    const isNumber: Assertion<any, number> = (value: any): value is number =>
       typeof value === "number";
+
     describe("@overload when called with just a guard", () => {
       it("should return the original Ok if the guard is satisfied", () => {
         const ok = Result.Of("ok", 10).assertOk(isNumber);
@@ -384,12 +396,12 @@ describe("Result", () => {
       });
 
       it("should return Err with Empty if the guard is not satisfied", () => {
-        const ok = Result.Of("ok", "not a number").assertOk(isNumber);
+        const ok = Result.Of<any>("ok", "not a number").assertOk(isNumber);
         expect(ok.isErr()).toBe(true);
       });
 
       it("should turn Result<V, E> to Result<To, V>", () => {
-        const ok = Result.Of("ok", "not a number").assertOk(isNumber);
+        const ok = Result.Of<any>("ok", "not a number").assertOk(isNumber);
 
         type Test = typeof ok;
         type Expected = Result<number, Empty>;
@@ -397,20 +409,23 @@ describe("Result", () => {
         expectTypeOf<Test>().toMatchTypeOf<Expected>();
       });
 
-      it("should turn Ok<V> or Err<E> into to Result<To, E>", () => {
-        const ok = Result.Ok().assertOk(isNumber);
+      it("should turn Ok<V> into to Result<To, E>", () => {
+        const ok = Result.Ok().assertOk<any>(isNumber);
 
-        type TestOk = typeof ok;
-        type ExpectedOk = Result<number, Empty>;
+        type Test = typeof ok;
+        type Expected = Result<number, Empty>;
 
-        expectTypeOf<TestOk>().toMatchTypeOf<ExpectedOk>();
+        expectTypeOf<Test>().toMatchTypeOf<Expected>();
+      });
 
+      it("should not be allowed on Err instances", () => {
+        // @ts-expect-error
         const err = Result.Err().assertOk(isNumber);
+      });
 
-        type TestErr = typeof err;
-        type ExpectedErr = Result<number, Empty>;
-
-        expectTypeOf<TestErr>().toMatchTypeOf<ExpectedErr>();
+      it("should error when single template param is given that doesn't match guard generic", () => {
+        // @ts-expect-error
+        Result.Ok("10").assertOk<string>(isNumber);
       });
     });
 
@@ -422,7 +437,7 @@ describe("Result", () => {
       });
 
       it("should return Err with the provided error if the guard is not satisfied", () => {
-        const ok = Result.Of("ok", "not a number").assertOk(
+        const ok = Result.Of<any>("ok", "not a number").assertOk(
           isNumber,
           "Not a number"
         );
@@ -438,10 +453,10 @@ describe("Result", () => {
 
         expectTypeOf<TestOk>().toMatchTypeOf<ExpectedOk>();
 
-        const err = Result.Of("err", CustomEnumError.Error1).assertOk(
-          isNumber,
-          "not a number"
-        );
+        const err = Result.Of<any, CustomEnumError>(
+          "err",
+          CustomEnumError.Error1
+        ).assertOk(isNumber, "not a number");
 
         type TestErr = typeof err;
         type ExpectedErr = Result<number, string | CustomEnumError>;
@@ -498,6 +513,107 @@ describe("Result", () => {
       type Expected = Err<Empty>;
       // @ts-expect-error // TODO: MAKE THIS WORK
       expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+  });
+
+  describe(".or", () => {
+    it("should return the original Ok Result regardless of chained results when called on Ok", () => {
+      const ok = Result.Of("ok", "Success");
+      const okAlt = Result.Of("ok", "Alternative");
+
+      const result1 = ok.or(okAlt);
+
+      expect(result1).instanceOf(Ok);
+      expect(result1.takeOk()).toBe("Success");
+
+      const errAlt = Result.Of("err", "Error");
+      const result2 = ok.or(errAlt);
+
+      expect(result2).instanceOf(Ok);
+      expect(result2.takeOk()).toBe("Success");
+    });
+
+    it("should return alt Result when called on Err", () => {
+      const err = Result.Of("err", "Error A");
+      const alt = Result.Of("ok", "Alternative");
+
+      const result = err.or(alt);
+
+      expect(result).instanceOf(Ok);
+      expect(result.takeOk()).toBe("Alternative");
+    });
+
+    it("should result in earliest Ok. Otherwise the last Err", () => {
+      const err = Result.Of("err", "Error A");
+      const errAlt1 = Result.Of("err", "Error B");
+      const errAlt2 = Result.Of("err", "Error C");
+      const errAlt3 = Result.Of("err", "Error D");
+      const okAlt = Result.Of("ok", "Alternative");
+
+      const resultA = err.or(errAlt1).or(errAlt2).or(errAlt3);
+
+      expect(resultA).toBeInstanceOf(Err);
+      expect(resultA.takeErr()).toBe("Error D");
+
+      const resultB = err.or(errAlt1).or(errAlt2).or(errAlt3).or(okAlt);
+
+      expect(resultB).toBeInstanceOf(Ok);
+      expect(resultB.takeOk()).toBe("Alternative");
+
+      const resultC = err.or(errAlt1).or(okAlt).or(errAlt2).or(errAlt3);
+
+      expect(resultC).toBeInstanceOf(Ok);
+      expect(resultC.takeOk()).toBe("Alternative");
+    });
+
+    it("should work with Result and Result returning functions", () => {
+      const err = () => Result.Of("err", "Error A");
+      const errAlt1 = () => Result.Of("err", "Error B");
+      const errAlt2 = () => Result.Of("err", "Error C");
+      const errAlt3 = () => Result.Of("err", "Error D");
+      const okAlt = () => Result.Of("ok", "Alternative");
+
+      const resultA = err().or(errAlt1).or(errAlt2).or(errAlt3);
+
+      expect(resultA).toBeInstanceOf(Err);
+      expect(resultA.takeErr()).toBe("Error D");
+
+      const resultB = err().or(errAlt1).or(errAlt2).or(errAlt3).or(okAlt);
+
+      expect(resultB).toBeInstanceOf(Ok);
+      expect(resultB.takeOk()).toBe("Alternative");
+
+      const resultC = err().or(errAlt1).or(okAlt).or(errAlt2).or(errAlt3);
+
+      expect(resultC).toBeInstanceOf(Ok);
+      expect(resultC.takeOk()).toBe("Alternative");
+    });
+
+    it("should generate a unions type of all the Results. Regardless of order", () => {
+      type ResultA = Result<"OkA", "ErrorA">;
+      type ResultB = Result<"OkB", "ErrorB">;
+      type ResultC = Result<"OkC", "ErrorC">;
+      type ResultD = Result<"OkD", "ErrorD">;
+      type ResultE = Result<"OkE", "ErrorE">;
+
+      const resultA: ResultA = Result.Of("err", "ErrorA");
+      const resultB: ResultB = Result.Of("ok", "OkB");
+      const resultC: ResultC = Result.Of("err", "ErrorC");
+      const resultD: ResultD = Result.Of("ok", "OkD");
+      const resultE: ResultE = Result.Of("err", "ErrorE");
+
+      const finalA = resultA.or(resultB).or(resultC).or(resultD).or(resultE);
+      type Expected = ResultA | ResultB | ResultC | ResultD | ResultE;
+
+      type TestA = typeof finalA;
+
+      expectTypeOf<TestA>().toEqualTypeOf<Expected>();
+
+      const finalB = resultB.or(resultA).or(resultE).or(resultD).or(resultC);
+
+      type TestB = typeof finalB;
+
+      expectTypeOf<TestB>().toEqualTypeOf<Expected>();
     });
   });
 

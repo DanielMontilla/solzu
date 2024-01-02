@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { defineArgs } from "../..";
+import { defineArgs, defineEnum } from "../..";
 
 describe("defineArgs", () => {
   it("should require missing props + correctly output merged object", () => {
@@ -89,5 +89,41 @@ describe("defineArgs", () => {
     expect(args).toHaveProperty(["prop2", "nested1"]);
     expect(args).toHaveProperty(["prop2", "nested2"]);
     expect(args).toEqual({ prop1: 1, prop2: { nested1: "hello", nested2: 0 } });
+  });
+});
+
+describe("defineEnum", () => {
+  describe("@overload without prefix", () => {
+    it("should create an enum object with keys equal to values", () => {
+      const result = defineEnum(["ONE", "TWO", "THREE"] as const);
+      expect(result).toEqual({ ONE: "ONE", TWO: "TWO", THREE: "THREE" });
+    });
+  });
+
+  describe("@overload with prefix", () => {
+    it("should create an enum object with prefixed keys", () => {
+      const result = defineEnum(["ONE", "TWO", "THREE"] as const, "PREFIX");
+      expect(result).toEqual({
+        ONE: "PREFIX.ONE",
+        TWO: "PREFIX.TWO",
+        THREE: "PREFIX.THREE",
+      });
+    });
+  });
+
+  describe("@overload with optional prefix", () => {
+    it("should create an enum object with keys equal to values when no prefix is provided", () => {
+      const result = defineEnum(["ONE", "TWO", "THREE"] as const);
+      expect(result).toEqual({ ONE: "ONE", TWO: "TWO", THREE: "THREE" });
+    });
+
+    it("should create an enum object with prefixed keys when prefix is provided", () => {
+      const result = defineEnum(["ONE", "TWO", "THREE"] as const, "PREFIX");
+      expect(result).toEqual({
+        ONE: "PREFIX.ONE",
+        TWO: "PREFIX.TWO",
+        THREE: "PREFIX.THREE",
+      });
+    });
   });
 });

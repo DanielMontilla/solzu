@@ -4,12 +4,12 @@ import {
   None,
   Option,
   Predicate_ as Predicate,
-  Guard,
   Some,
   Left,
   Right,
   EMPTY,
   Empty,
+  Assertion,
 } from "../..";
 
 export abstract class Result<V = Empty, E = Empty> {
@@ -112,7 +112,7 @@ export abstract class Result<V = Empty, E = Empty> {
    * @param guard A type guard function to assert the `Ok` value.
    * @returns A `Result<To, E | Empty>` with the asserted `Ok` value or the original `Err`.
    */
-  public assertOk<To>(guard: Guard<To>): Result<To, E | Empty>;
+  public assertOk<To extends V>(guard: Assertion<V, To>): Result<To, E | Empty>;
 
   /**
    * Asserts the `Ok` value of the `Result` matches a type guard and returns a new `Result` with the asserted type or a provided error.
@@ -122,7 +122,10 @@ export abstract class Result<V = Empty, E = Empty> {
    * @param error The error to use in the resulting `Err` if the assertion fails.
    * @returns A `Result<To, E | Ex>` with the asserted `Ok` value or the provided error.
    */
-  public assertOk<To, Ex = E>(guard: Guard<To>, error: Ex): Result<To, E | Ex>;
+  public assertOk<To extends V, Ex>(
+    guard: Assertion<V, To>,
+    error: Ex
+  ): Result<To, E | Ex>;
 
   /**
    * @internal
@@ -133,8 +136,8 @@ export abstract class Result<V = Empty, E = Empty> {
    * @param error Optional error to use in the resulting `Err` if the assertion fails.
    * @returns A `Result<To, E>` or `Result<V, E | Ex>` or `Result<V, E | Empty>` with the asserted `Ok` value or error.
    */
-  public assertOk<To, Ex = E>(
-    guard: Guard<To>,
+  public assertOk<To extends V, Ex = E>(
+    guard: Assertion<V, To>,
     error?: Ex
   ): Result<To, E> | Result<V, E | Ex> | Result<V, E | Empty> {
     if (this.isErr()) return this;
@@ -155,6 +158,32 @@ export abstract class Result<V = Empty, E = Empty> {
 
     // @ts-expect-error
     return self.value;
+  }
+
+  /**
+   * Returns the original `Result` if it's `Ok`, otherwise returns the provided alternative `Result`.
+   * Its recomended to pass in a function that returns a Result to differ said computation until absolutely needed.
+   * @template R The type of the alternative `Result`.
+   * @param other The alternative `Result` or a function that returns a `Result` based on the original `Err` value.
+   * @returns The original `Result` if it's `Ok`, otherwise the alternative `Result`.
+   */
+  public or<R extends Result.AnyResult>(
+    other: R | ((error: E) => R)
+  ): Result<V, E> | R {
+    if (this.isOk()) return this;
+    return typeof other === "function" ? other(this.takeErr()) : other;
+  }
+
+  public orIf<R extends Result.AnyResult>(
+    predicate: Predicate<E>,
+    other: R | ((error: E) => R)
+  ): Result<V, E> | R {
+    if (this.isOk()) return this;
+    return predicate(this.takeErr())
+      ? typeof other === "function"
+        ? other(this.takeErr())
+        : other
+      : this;
   }
 
   /**
@@ -381,9 +410,6 @@ export abstract class Result<V = Empty, E = Empty> {
   }
 }
 
-/**
- * Represents a successful result, containing a value.
- */
 export class Ok<V> extends Result<V, never> {
   public constructor(private _value: V) {
     super();
@@ -498,7 +524,7 @@ export namespace Result {
   export type Union<V = void, E = void> = Ok<V> | Err<E>;
 
   /** @internal */
-  type AnyResult = Result<any, any>;
+  export type AnyResult = Result<any, any>;
 
   /**
    * Extracts the error type from a `Result` type.

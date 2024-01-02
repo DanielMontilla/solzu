@@ -130,15 +130,8 @@ export const hasProperty = <K extends Object>(
  * Checks if the provided value is a record (an object with string keys and any type of values).
  * Specifically, it verifies that the value is an object, not null, not an array, and not a class instance.
  *
- * @param value - The value to check.
- * @returns {boolean} - `true` if the value is a record, otherwise `false`.
- *
- * @example
- * console.log(isRecord({ a: 1, b: "test" })); // true
- * console.log(isRecord([1, 2, 3])); // false
- * console.log(isRecord(new Date())); // false
- * console.log(isRecord(null)); // false
- * console.log(isRecord("Not an object")); // false
+ * @param value The value to check.
+ * @returns {boolean} -true` if the value is a record, otherwise `false`.
  */
 export function isRecord(value: any): value is Record<RecordKey, any> {
   if (typeof value !== "object" || value === null) {

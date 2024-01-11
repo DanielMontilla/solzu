@@ -36,10 +36,10 @@ export namespace nextFloat {
     max: number
   ): Result<number, between.Error> {
     return Result.Ok({ min, max })
-      .checkOk(({ min }) => isNumber(min), between.error.InvalidInput)
-      .checkOk(({ max }) => isNumber(max), between.error.InvalidInput)
-      .checkOk(({ min, max }) => min <= max, between.error.InvalidRange)
-      .mapOk(({ min, max }) => betweenU(min, max));
+      .check(({ min }) => isNumber(min), between.error.InvalidInput)
+      .check(({ max }) => isNumber(max), between.error.InvalidInput)
+      .check(({ min, max }) => min <= max, between.error.InvalidRange)
+      .map(({ min, max }) => betweenU(min, max));
   }
 
   /**
@@ -99,10 +99,10 @@ export namespace nextInt {
     max: number
   ): Result<number, between.Error> {
     return Result.Ok({ min, max })
-      .checkOk(({ min }) => isInt(min), between.error.InvalidInput)
-      .checkOk(({ max }) => isInt(max), between.error.InvalidInput)
-      .checkOk(({ min, max }) => min <= max, between.error.InvalidRange)
-      .mapOk(({ min, max }) => betweenU(min, max));
+      .check(({ min }) => isInt(min), between.error.InvalidInput)
+      .check(({ max }) => isInt(max), between.error.InvalidInput)
+      .check(({ min, max }) => min <= max, between.error.InvalidRange)
+      .map(({ min, max }) => betweenU(min, max));
   }
 
   /**
@@ -134,8 +134,8 @@ export namespace nextInt {
  */
 export function nextIndex(array: Array<any>): Result<number, nextIndex.Error> {
   return Result.Ok(array)
-    .checkOk<nextIndex.Error>(isNotEmptyArray, nextIndex.error.EmptyArray)
-    .mapOk(nextIndexU);
+    .check<nextIndex.Error>(isNotEmptyArray, nextIndex.error.EmptyArray)
+    .map(nextIndexU);
 }
 
 /**
@@ -178,16 +178,16 @@ export function nextKey<K>(
   const original = Result.Ok<nextKey.Collection>(collection);
 
   const forArray = () =>
-    original.mapOk(arr => nextKey.ofArray(arr as Array<any>)).unfold();
+    original.map(arr => nextKey.ofArray(arr as Array<any>)).unfold();
 
   const forRecord = () =>
-    original.mapOk(rec => nextKey.ofRecord(rec as Record<any, any>)).unfold();
+    original.map(rec => nextKey.ofRecord(rec as Record<any, any>)).unfold();
 
   const forMap = () =>
-    original.mapOk(map => nextKey.ofMap(map as Map<any, any>)).unfold();
+    original.map(map => nextKey.ofMap(map as Map<any, any>)).unfold();
 
   const forSet = () =>
-    original.mapOk(set => nextKey.ofSet(set as Set<any>)).unfold();
+    original.map(set => nextKey.ofSet(set as Set<any>)).unfold();
 
   return forArray()
     .orIf(e => e === nextKey.ofArray.error.NotAnArray, forRecord)
@@ -217,14 +217,14 @@ export namespace nextKey {
     record: Record<K, any>
   ): Result<K, ofRecord.Error> {
     return Result.Ok(record)
-      .assertOk(isRecord, ofRecord.error.NotARecord)
-      .mapOk(keysOf)
-      .mapOk(keys => nextIndex(keys).mapOk(i => ({ keys, i })))
+      .assert(isRecord, ofRecord.error.NotARecord)
+      .map(keysOf)
+      .map(keys => nextIndex(keys).map(i => ({ keys, i })))
       .unfold()
-      .mapErr(err =>
+      .refine(err =>
         err === nextIndex.error.EmptyArray ? ofRecord.error.IsEmpty : err
       )
-      .mapOk(({ keys, i }) => keys[i] as K);
+      .map(({ keys, i }) => keys[i] as K);
   }
 
   export namespace ofRecord {
@@ -242,10 +242,10 @@ export namespace nextKey {
    */
   export function ofArray(array: Array<any>): Result<number, ofArray.Error> {
     return Result.Ok(array)
-      .assertOk(isArray, ofArray.error.NotAnArray)
-      .mapOk(nextIndex)
+      .assert(isArray, ofArray.error.NotAnArray)
+      .map(nextIndex)
       .unfold()
-      .mapErr(err =>
+      .refine(err =>
         err === nextIndex.error.EmptyArray ? ofArray.error.IsEmpty : err
       );
   }
@@ -265,14 +265,13 @@ export namespace nextKey {
    */
   export function ofMap<K>(map: Map<K, any>): Result<K, ofMap.Error> {
     return Result.Ok<Map<any, any>>(map)
-      .assertOk(isMap, ofMap.error.NotAMap)
-      .mapOk(map => [...map.keys()])
-      .mapOk(keys => nextIndex(keys).mapOk(i => ({ keys, i })))
-      .unfold()
-      .mapErr(err =>
+      .assert(isMap, ofMap.error.NotAMap)
+      .map(map => [...map.keys()])
+      .chain(keys => nextIndex(keys).map(i => ({ keys, i })))
+      .refine(err =>
         err === nextIndex.error.EmptyArray ? ofMap.error.IsEmpty : err
       )
-      .mapOk(({ keys, i }) => keys[i] as K);
+      .map(({ keys, i }) => keys[i] as K);
   }
 
   export namespace ofMap {
@@ -290,14 +289,14 @@ export namespace nextKey {
    */
   export function ofSet<K>(set: Set<K>): Result<K, ofSet.Error> {
     return Result.Ok<Set<any>>(set)
-      .assertOk(isSet, ofSet.error.NotASet)
-      .mapOk(set => [...set.keys()])
-      .mapOk(keys => nextIndex(keys).mapOk(i => ({ keys, i })))
+      .assert(isSet, ofSet.error.NotASet)
+      .map(set => [...set.keys()])
+      .map(keys => nextIndex(keys).map(i => ({ keys, i })))
       .unfold()
-      .mapErr(err =>
+      .refine(err =>
         err === nextIndex.error.EmptyArray ? ofSet.error.IsEmpty : err
       )
-      .mapOk(({ keys, i }) => keys[i] as K);
+      .map(({ keys, i }) => keys[i] as K);
   }
   export namespace ofSet {
     export type Error = (typeof error)[keyof typeof error];

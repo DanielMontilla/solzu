@@ -69,7 +69,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "a1efef0ed5b2cea9",
@@ -148,6 +149,9 @@
   },
   "active": "7795ddf4000588f2",
   "lastOpenFiles": [
+    "docs/Limitations.md",
+    "docs/Differences.md",
+    "docs/TODOs.md",
     "vite.config.ts.timestamp-1704156801039.mjs",
     "vite.config.ts.timestamp-1704156777191.mjs",
     "vite.config.ts.timestamp-1704156770518.mjs",
@@ -157,8 +161,6 @@
     "vite.config.ts.timestamp-1704145767490.mjs",
     "vite.config.ts.timestamp-1704145075724.mjs",
     "vite.config.ts.timestamp-1704030274353.mjs",
-    "vite.config.ts.timestamp-1704030258911.mjs",
-    "vite.config.ts.timestamp-1703995338522.mjs",
-    "docs/TODOs.md"
+    "vite.config.ts.timestamp-1704030258911.mjs"
   ]
 }

@@ -1,29 +1,17 @@
-import {
-  Either,
-  Mapper,
-  None,
-  Option,
-  Predicate_ as Predicate,
-  Some,
-  Left,
-  Right,
-  EMPTY,
-  Empty,
-  Assertion,
-} from "../..";
+import { Mapper, Predicate, EMPTY, Empty, Assertion } from "../..";
 
 export abstract class Result<V = Empty, E = Empty> {
   /**
    * Extracts the `Ok` value directly.
-   * @throws If the `Result` is `Err`.
-   * @returns The `Ok` value.
+   * @throws if the `Result` is `Err`.
+   * @returns the `Ok` value.
    */
-  abstract takeOk(): V;
+  abstract take(): V;
 
   /**
    * Extracts the `Err` value directly.
-   * @throws If the `Result` is `Ok`.
-   * @returns The `Err` value.
+   * @throws if the `Result` is `Ok`.
+   * @returns the `Err` value.
    */
   abstract takeErr(): E;
 
@@ -59,15 +47,18 @@ export abstract class Result<V = Empty, E = Empty> {
    * @param mapper A function that takes the `Ok` value and returns a new value.
    * @returns A `Result` with the transformed `Ok` value or the original `Err`.
    */
-  abstract mapOk<To = V>(mapper: Mapper<V, To>): Result<To, E>;
+  abstract map<To>(mapper: Mapper<V, To>): Result<To, E>;
 
   /**
-   * Transforms the `Err` value of the `Result` using a given mapper function.
-   * @template To The type of the resulting `Err` value after applying the mapper.
-   * @param mapper A function that takes the `Err` value and returns a new value.
-   * @returns A `Result` with the original `Ok` or the transformed `Err` value.
+   * @TODO MISSING
    */
-  abstract mapErr<To = E>(mapper: Mapper<E, To>): Result<V, To>;
+  abstract chain<To, Ex>(chain: Mapper<V, Result<To, Ex>>): Result<To, E | Ex>;
+
+  /**
+   *
+   * @TODO MISSING
+   */
+  abstract refine<To>(mapper: Mapper<E, To>): Result<V, To>;
 
   /**
    * Checks if the `Ok` value satisfies a predicate and returns the original `Result` if true.
@@ -75,7 +66,7 @@ export abstract class Result<V = Empty, E = Empty> {
    * @param predicate A function that evaluates the `Ok` value if called on `Ok` instance.
    * @returns The original `Result` if `Ok` value satisfies the predicate or an `Err` with an empty error.
    */
-  public checkOk(predicate: Predicate<V>): Result<V, E | Empty>;
+  public check(predicate: Predicate<V>): Result<V, E | Empty>;
 
   /**
    * Checks if the `Ok` value satisfies a predicate and returns the original `Result` if true.
@@ -85,7 +76,7 @@ export abstract class Result<V = Empty, E = Empty> {
    * @param error The error to use in the resulting `Err` if the predicate fails.
    * @returns The original `Result` if `Ok` value satisfies the predicate or an `Err` with the provided error.
    */
-  public checkOk<Ex>(predicate: Predicate<V>, error: Ex): Result<V, E | Ex>;
+  public check<Ex>(predicate: Predicate<V>, error: Ex): Result<V, E | Ex>;
 
   /**
    * @internal
@@ -95,12 +86,12 @@ export abstract class Result<V = Empty, E = Empty> {
    * @param error Optional error to use in the resulting `Err` if the predicate fails.
    * @returns The original `Result` if `Ok` value satisfies the predicate or an `Err` with the optional error.
    */
-  public checkOk<Ex = E>(
+  public check<Ex = E>(
     predicate: Predicate<V>,
     error?: Ex
   ): Result<V, E> | Result<V, E | Ex> | Result<V, E | Empty> {
     if (this.isErr()) return this;
-    if (predicate(this.takeOk())) return this;
+    if (predicate(this.take())) return this;
     return error !== undefined
       ? Result.Err<E | Ex>(error)
       : Result.Err<E | Empty>();
@@ -112,7 +103,7 @@ export abstract class Result<V = Empty, E = Empty> {
    * @param guard A type guard function to assert the `Ok` value.
    * @returns A `Result<To, E | Empty>` with the asserted `Ok` value or the original `Err`.
    */
-  public assertOk<To extends V>(guard: Assertion<V, To>): Result<To, E | Empty>;
+  public assert<To extends V>(guard: Assertion<V, To>): Result<To, E | Empty>;
 
   /**
    * Asserts the `Ok` value of the `Result` matches a type guard and returns a new `Result` with the asserted type or a provided error.
@@ -122,7 +113,7 @@ export abstract class Result<V = Empty, E = Empty> {
    * @param error The error to use in the resulting `Err` if the assertion fails.
    * @returns A `Result<To, E | Ex>` with the asserted `Ok` value or the provided error.
    */
-  public assertOk<To extends V, Ex>(
+  public assert<To extends V, Ex>(
     guard: Assertion<V, To>,
     error: Ex
   ): Result<To, E | Ex>;
@@ -136,12 +127,12 @@ export abstract class Result<V = Empty, E = Empty> {
    * @param error Optional error to use in the resulting `Err` if the assertion fails.
    * @returns A `Result<To, E>` or `Result<V, E | Ex>` or `Result<V, E | Empty>` with the asserted `Ok` value or error.
    */
-  public assertOk<To extends V, Ex = E>(
+  public assert<To extends V, Ex = E>(
     guard: Assertion<V, To>,
     error?: Ex
   ): Result<To, E> | Result<V, E | Ex> | Result<V, E | Empty> {
     if (this.isErr()) return this;
-    if (guard(this.takeOk())) return this as unknown as Result<To, E>;
+    if (guard(this.take())) return this as unknown as Result<To, E>;
     return error !== undefined
       ? Result.Err<E | Ex>(error)
       : Result.Err<E | Empty>();
@@ -186,24 +177,15 @@ export abstract class Result<V = Empty, E = Empty> {
       : this;
   }
 
-  /**
-   * Converts `Result` to `Either` type.
-   * @returns An `Either` representation of the `Result`.
-   */
-  abstract toEither(): Either<V, E>;
-
-  /**
-   * Converts `Result` to `Option` type.
-   * When `Err` becomes `None`, otherwise if `Ok<V>`; becomes `Some<V>`.
-   * @returns An `Option`.
-   */
-  abstract toOption(): Option<V>;
-
   public toUnion(): Result.Union<V, E> {
     if (this instanceof Ok || this instanceof Err) return this;
     throw Error(
       "trying to convert to union a object thats not Ok or Err instance"
     );
+  }
+
+  public toBase(): Result<V, E> {
+    return this;
   }
 
   /**
@@ -256,71 +238,6 @@ export abstract class Result<V = Empty, E = Empty> {
    */
   public static Err<E>(error?: E): Err<E> | Err<E | Empty> {
     return error !== undefined ? new Err<E>(error) : new Err<E | Empty>(EMPTY);
-  }
-
-  /**
-   * Creates a new `Result` with both `Ok` and `Err` as empty. Internally an `Ok<Empty>` is created.
-   * @returns A `Result<Empty, Empty>`.
-   */
-  public static Of(): Result<Empty, Empty>;
-
-  /**
-   * Creates a new `Result<V, E>`. Internally a `Err<E | Empty>`.
-   * @see {@link Result.Of<V, E>(kind: "err", error: E): Result<V, E>} To create a specific `Err<E>` without the `Empty`
-   * @template V The type of the value.
-   * @template E The type of the error.
-   * @returns A `Result<Empty, E | Empty>`.
-   */
-  public static Of<V = Empty, E = Empty>(kind: "err"): Result<V, E | Empty>;
-
-  /**
-   * Creates a new `Result`. Internally a `Ok<Empty>`.
-   * @see {@link Result.Of<V, E>(kind: "ok", value: V): Result<V, E>} To create a non `Empty` `Ok`.
-   * @template E The type of the error.
-   * @returns A `Result<Empty, E | Empty>`.
-   */
-  public static Of<E = Empty>(kind: "ok"): Result<Empty, E | Empty>;
-
-  /**
-   * Creates a new `Result<V, E>`. Internally a `Ok<V>`.
-   * @template V The type of the value.
-   * @template E The type of the error.
-   * @param value The value for the `Ok` result.
-   * @returns A `Result<V, E>`.
-   */
-  public static Of<V = Empty, E = Empty>(kind: "ok", value: V): Result<V, E>;
-
-  /**
-   * Creates a new `Result<V, E>`. Internally a `Err<E>`.
-   * @template V The type of the value.
-   * @template E The type of the error.
-   * @param error The error for the `Err` result.
-   * @returns A `Result<V, E>`.
-   */
-  public static Of<V = Empty, E = Empty>(kind: "err", error: E): Result<V, E>;
-
-  /**
-   * @internal
-   * General method for creating a new `Result<V, E>`.
-   * @template V The type of the value.
-   * @template E The type of the error.
-   * @param kind Specifies the kind of result to create ("ok" or "err").
-   * @param content The content of the `Ok` (value) or `Err` (error), depending on `kind`.
-   * @returns A `Result` which can be various combinations of `V` and `E`.
-   */
-  public static Of<V = Empty, E = Empty>(
-    kind?: "ok" | "err",
-    content?: V | E
-  ): Result<Empty, Empty> | Result<V, E | Empty> | Result<V, E> {
-    return kind === undefined
-      ? Result.Ok()
-      : kind === "ok"
-        ? content !== undefined
-          ? Result.Ok(content as V)
-          : Result.Ok()
-        : content !== undefined
-          ? Result.Err<E>(content as E)
-          : Result.Err<E>();
   }
 
   /**
@@ -411,20 +328,20 @@ export abstract class Result<V = Empty, E = Empty> {
 }
 
 export class Ok<V> extends Result<V, never> {
-  public constructor(private _value: V) {
-    super();
-  }
-
   get value() {
     return this._value;
   }
 
-  takeOk(): V {
+  public constructor(private readonly _value: V) {
+    super();
+  }
+
+  take(): V {
     return this.value;
   }
 
   takeErr(): never {
-    throw Error("Trying to takeErr on a `Ok` Result");
+    throw Result.ERROR.takeErr;
   }
 
   isOk(): this is Ok<V> {
@@ -444,26 +361,19 @@ export class Ok<V> extends Result<V, never> {
     return this;
   }
 
-  mapOk<To = V>(mapper: Mapper<V, To>): Ok<To> {
+  map<To>(mapper: Mapper<V, To>): Ok<To> {
     return Result.Ok(mapper(this.value));
   }
 
-  mapErr<To>(_mapper: Mapper<any, To>): Ok<V> {
+  refine<To>(_mapper: Mapper<never, To>): Ok<V> {
     return this;
   }
 
-  toEither(): Left<V> {
-    return Either.Left(this.value);
-  }
-
-  toOption(): Some<V> {
-    return Option.Some(this.value);
+  chain<To, Ex>(chain: Mapper<V, Result<To, Ex>>): Result<To, Ex> {
+    return Result.Ok(chain(this.value)).unfold();
   }
 }
 
-/**
- * Represents a failed result, containing an error.
- */
 export class Err<E> extends Result<never, E> {
   constructor(private _error: E) {
     super();
@@ -473,8 +383,8 @@ export class Err<E> extends Result<never, E> {
     return this._error;
   }
 
-  takeOk(): never {
-    throw Error("Trying to takeOk on an `Err` Result");
+  take(): never {
+    throw Result.ERROR.take;
   }
 
   takeErr(): E {
@@ -498,20 +408,16 @@ export class Err<E> extends Result<never, E> {
     return this;
   }
 
-  mapOk<To>(_mapper: Mapper<any, To>): Err<E> {
+  map<To>(_mapper: Mapper<never, To>): Err<E> {
     return this;
   }
 
-  mapErr<To = E>(mapper: Mapper<E, To>): Err<To> {
+  refine<To>(mapper: Mapper<E, To>): Err<To> {
     return Result.Err(mapper(this.error));
   }
 
-  public toEither(): Right<E> {
-    return Either.Right(this._error);
-  }
-
-  toOption(): None {
-    return Option.None();
+  chain<To, Ex>(_chain: Mapper<never, Result<To, Ex>>): Err<E> {
+    return this;
   }
 }
 
@@ -546,9 +452,8 @@ export namespace Result {
     ? Result<U, E | F>
     : Result<V, E>;
 
-  export type Flatten<V, E> = V extends Result<infer U, infer F>
-    ? F extends E
-      ? Result<U, E>
-      : never
-    : Result<V, E>;
+  export const ERROR = {
+    take: new Error("Trying to take value from `Err` instance"),
+    takeErr: new Error("Trying to take error from `Ok` instance"),
+  } as const;
 }

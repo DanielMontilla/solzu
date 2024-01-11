@@ -1,11 +1,11 @@
-export type Predicate<In, _Out = In> = (value: In) => boolean;
-export type Predicate_<In> = (value: In) => boolean;
+export type Predicate<In> = (value: In) => boolean;
 export type Guard<Out> = (value: unknown) => value is Out;
 export type Assertion<In, Out extends In> = (value: In) => value is Out;
 
-export type Mapper<From, To> = [From] extends [never]
-  ? () => To
-  : (value: From) => To;
+export type Mapper<From, To> = (x: From) => To;
+
+export type Effect<T> = (x: T) => any;
+
 export type Alternate<To> = Mapper<never, To>;
 
 export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
@@ -56,3 +56,4 @@ export type AssertEqual<T, Expected> = [T] extends [Expected]
   : never;
 
 export type Empty = void;
+export type Never = never;

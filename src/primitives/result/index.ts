@@ -42,17 +42,23 @@ export abstract class Result<V = Empty, E = Empty> {
   abstract onErr(effect: (error: E) => any): Result<V, E>;
 
   /**
-   * Transforms the `Ok` value of the `Result` using a given mapper function.
+   * If called on `Ok` instance; transforms inner value with provided mapper function. Otherwise remains `Err`.
    * @template To The type of the resulting `Ok` value after applying the mapper.
-   * @param mapper A function that takes the `Ok` value and returns a new value.
+   * @param mapper A function that takes the `Ok` inner value and returns a new value.
    * @returns A `Result` with the transformed `Ok` value or the original `Err`.
    */
-  abstract map<To>(mapper: Mapper<V, To>): Result<To, E>;
+  abstract map<To>(mapper: (x: V) => To): Result<To, E>;
 
   /**
-   * @TODO MISSING
+   * @TODO desc
+   * @template To The type of the `Ok` value in the new `Result`.
+   * @template Ex The type of the `Err` value in the new `Result`.
+   * @param chain A function that takes the `Ok` value and returns a `Result<To, Ex>`.
+   * @returns If the original `Result` is `Ok`, returns the `Result` from the chaining function. If it is `Err`, returns the original `Err`.
+   * @see {@link Result.unfold}
+   * @see {@link Result.map}
    */
-  abstract chain<To, Ex>(chain: Mapper<V, Result<To, Ex>>): Result<To, E | Ex>;
+  abstract chain<To, Ex>(chain: (x: V) => Result<To, Ex>): Result<To, E | Ex>;
 
   /**
    *
@@ -344,11 +350,11 @@ export class Ok<V> extends Result<V, never> {
     throw Result.ERROR.takeErr;
   }
 
-  isOk(): this is Ok<V> {
+  isOk(): true {
     return true;
   }
 
-  isErr(): this is Err<never> {
+  isErr(): false {
     return false;
   }
 
@@ -391,11 +397,11 @@ export class Err<E> extends Result<never, E> {
     return this.error;
   }
 
-  isOk(): this is Ok<never> {
+  isOk(): false {
     return false;
   }
 
-  isErr(): this is Err<E> {
+  isErr(): true {
     return true;
   }
 

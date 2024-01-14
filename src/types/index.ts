@@ -57,3 +57,19 @@ export type AssertEqual<T, Expected> = [T] extends [Expected]
 
 export type Empty = void;
 export type Never = never;
+
+export type NthArgOf<T, N extends number> = T extends (
+  ...args: infer Args
+) => any
+  ? Args[N] extends undefined
+    ? never
+    : Args[N]
+  : never;
+
+export type HasNArgs<T, N extends number> = T extends (
+  ...args: infer Args
+) => any
+  ? Args["length"] extends N
+    ? true
+    : false
+  : false;

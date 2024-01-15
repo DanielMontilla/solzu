@@ -6,7 +6,7 @@ export const CustomErrorLookup = {
   C: "Error C",
 } as const;
 
-export enum CustomerErrorEnum {
+export enum CustomErrorEnum {
   A,
   B,
   C,

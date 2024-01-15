@@ -29,15 +29,15 @@ export abstract class Result<V = Empty, E = Empty> {
 
   /**
    * Performs a side effect when `Result` is `Ok`.
-   * @param effect - The function to execute if `Result` is `Ok`.
-   * @returns The original `Result` for chaining.
+   * @param effect The function to execute if `Result` is `Ok`.
+   * @returns The original `Result`.
    */
   abstract onOk(effect: (value: V) => any): Result<V, E>;
 
   /**
    * Performs a side effect when `Result` is `Err`.
-   * @param effect - The function to execute if `Result` is `Err`.
-   * @returns The original `Result` for chaining.
+   * @param effect The function to execute if `Result` is `Err`.
+   * @returns The original `Result`.
    */
   abstract onErr(effect: (error: E) => any): Result<V, E>;
 
@@ -46,41 +46,49 @@ export abstract class Result<V = Empty, E = Empty> {
    * @template To The type of the resulting `Ok` value after applying the mapper.
    * @param mapper A function that takes the `Ok` inner value and returns a new value.
    * @returns A `Result` with the transformed `Ok` value or the original `Err`.
+   * @todo type tests
    */
-  abstract map<To>(mapper: (x: V) => To): Result<To, E>;
+  abstract map<To>(mapper: (value: V) => To): Result<To, E>;
 
   /**
-   * @TODO desc
+   * Transforms the `Ok` value of the `Result` and unfolds the returned `Result`.
    * @template To The type of the `Ok` value in the new `Result`.
    * @template Ex The type of the `Err` value in the new `Result`.
-   * @param chain A function that takes the `Ok` value and returns a `Result<To, Ex>`.
-   * @returns If the original `Result` is `Ok`, returns the `Result` from the chaining function. If it is `Err`, returns the original `Err`.
+   * @param {function(V): Result<To, Ex>} chain A function that takes the `Ok` value, transforms it, and returns a new `Result`.
+   * @returns {Result<To, E | Ex>} If the original `Result` is `Ok`, returns the unfolded `Result` of the function. If the original or the new `Result` is `Err`, returns `Err`.
    * @see {@link Result.unfold}
    * @see {@link Result.map}
+   * @todo type tests
    */
-  abstract chain<To, Ex>(chain: (x: V) => Result<To, Ex>): Result<To, E | Ex>;
+  abstract chain<To, Ex>(
+    chain: (value: V) => Result<To, Ex>
+  ): Result<To, E | Ex>;
 
   /**
-   *
-   * @TODO MISSING
+   * Transforms the error in the `Result`. Similar to `.map` for errors
+   * @template To The new error type.
+   * @param {function(E): To} mapper A function applied to the error if the `Result` is an `Err`.
+   * @returns {Result<V, To>} A `Result` with the original value or a transformed error.
+   * @see {@link Result.map}
+   * @todo type tests
    */
-  abstract refine<To>(mapper: Mapper<E, To>): Result<V, To>;
+  abstract refine<To>(mapper: (error: E) => To): Result<V, To>;
 
   /**
-   * Checks if the `Ok` value satisfies a predicate and returns the original `Result` if true.
-   * Otherwise returns an `Err` with an internal type of the existing error o an Empty value.
-   * @param predicate A function that evaluates the `Ok` value if called on `Ok` instance.
-   * @returns The original `Result` if `Ok` value satisfies the predicate or an `Err` with an empty error.
+   * Checks if the `Ok` value meets a specified condition, but only if the `Result` is `Ok`.
+   * @param {function(V): boolean} predicate A function to test the `Ok` value, executed only if the `Result` is `Ok`.
+   * @returns {Result<V, E | Empty>} Maintains the original `Result` if the condition is met; if not, or if the `Result` is `Err`, returns an `Err` with an empty error.
+   * @todo type tests
    */
-  public check(predicate: Predicate<V>): Result<V, E | Empty>;
+  public check(predicate: (value: V) => boolean): Result<V, E | Empty>;
 
   /**
-   * Checks if the `Ok` value satisfies a predicate and returns the original `Result` if true.
-   * Otherwise returns an `Err` with an internal type of the existing error o the specified error.
+   * Checks if the `Ok` value meets a specified condition, but only if the `Result` is `Ok`.
    * @template Ex The type of the additional error.
-   * @param predicate A function that evaluates the `Ok` value.
-   * @param error The error to use in the resulting `Err` if the predicate fails.
-   * @returns The original `Result` if `Ok` value satisfies the predicate or an `Err` with the provided error.
+   * @param {Predicate<V>} predicate A function to test the `Ok` value, executed only if the `Result` is `Ok`.
+   * @param {Ex} error The error to use in the resulting `Err` if the predicate fails.
+   * @returns {Result<V, E | Ex>} Maintains the original `Result` if the condition is met; if not, or if the `Result` is `Err`, returns an `Err` with the specified error.
+   * @todo type tests
    */
   public check<Ex>(predicate: Predicate<V>, error: Ex): Result<V, E | Ex>;
 
@@ -108,6 +116,8 @@ export abstract class Result<V = Empty, E = Empty> {
    * @template To The type to assert the `Ok` value to.
    * @param guard A type guard function to assert the `Ok` value.
    * @returns A `Result<To, E | Empty>` with the asserted `Ok` value or the original `Err`.
+   * @todo runtime tests
+   * @todo type tests
    */
   public assert<To extends V>(guard: Assertion<V, To>): Result<To, E | Empty>;
 
@@ -118,6 +128,8 @@ export abstract class Result<V = Empty, E = Empty> {
    * @param guard A type guard function to assert the `Ok` value.
    * @param error The error to use in the resulting `Err` if the assertion fails.
    * @returns A `Result<To, E | Ex>` with the asserted `Ok` value or the provided error.
+   * @todo runtime tests
+   * @todo type tests
    */
   public assert<To extends V, Ex>(
     guard: Assertion<V, To>,
@@ -144,6 +156,11 @@ export abstract class Result<V = Empty, E = Empty> {
       : Result.Err<E | Empty>();
   }
 
+  /**
+   * @todo docs
+   * @todo runtime tests
+   * @todo type tests
+   */
   public unfold(): Result.Unfold<V, E> {
     const self = this.toUnion();
 
@@ -163,15 +180,22 @@ export abstract class Result<V = Empty, E = Empty> {
    * @template R The type of the alternative `Result`.
    * @param other The alternative `Result` or a function that returns a `Result` based on the original `Err` value.
    * @returns The original `Result` if it's `Ok`, otherwise the alternative `Result`.
+   * @todo runtime tests
+   * @todo type tests
    */
-  public or<R extends Result.AnyResult>(
+  public or<R extends Result.Any>(
     other: R | ((error: E) => R)
   ): Result<V, E> | R {
     if (this.isOk()) return this;
     return typeof other === "function" ? other(this.takeErr()) : other;
   }
 
-  public orIf<R extends Result.AnyResult>(
+  /**
+   * @todo docs
+   * @todo runtime tests
+   * @todo type tests
+   */
+  public orIf<R extends Result.Any>(
     predicate: Predicate<E>,
     other: R | ((error: E) => R)
   ): Result<V, E> | R {
@@ -183,6 +207,11 @@ export abstract class Result<V = Empty, E = Empty> {
       : this;
   }
 
+  /**
+   * @todo docs
+   * @todo runtime tests
+   * @todo type tests
+   */
   public toUnion(): Result.Union<V, E> {
     if (this instanceof Ok || this instanceof Err) return this;
     throw Error(
@@ -190,6 +219,10 @@ export abstract class Result<V = Empty, E = Empty> {
     );
   }
 
+  /**
+   * @todo docs
+   * @todo type tests
+   */
   public toBase(): Result<V, E> {
     return this;
   }
@@ -266,7 +299,7 @@ export abstract class Result<V = Empty, E = Empty> {
    */
   public static async FromPromise<V, E>(
     promise: Promise<V> | (() => Promise<V>),
-    mapper: Mapper<unknown, E>
+    mapper: (error: unknown) => E
   ): Promise<Result<V, E>>;
 
   /**
@@ -280,7 +313,7 @@ export abstract class Result<V = Empty, E = Empty> {
    */
   public static async FromPromise<V, E>(
     promise: Promise<V> | (() => Promise<V>),
-    mapper?: Mapper<unknown, E>
+    mapper?: (error: unknown) => E
   ): Promise<Result<V, E> | Result<V, unknown>> {
     try {
       return typeof promise === "function"
@@ -301,7 +334,7 @@ export abstract class Result<V = Empty, E = Empty> {
    */
   public static FromTryCatch<V, E>(
     fn: () => V,
-    mapper: Mapper<unknown, E>
+    mapper: (error: unknown) => E
   ): Result<V, E>;
 
   /**
@@ -436,13 +469,13 @@ export namespace Result {
   export type Union<V = void, E = void> = Ok<V> | Err<E>;
 
   /** @internal */
-  export type AnyResult = Result<any, any>;
+  export type Any = Result<any, any>;
 
   /**
    * Extracts the error type from a `Result` type.
    * @template R The Result type to extract the error from. Must extend `Result`
    */
-  export type ExtractErr<R extends AnyResult> = R extends Result<any, infer E>
+  export type ExtractErr<R extends Any> = R extends Result<any, infer E>
     ? E
     : never;
 
@@ -450,7 +483,7 @@ export namespace Result {
    * Extracts the `Ok`'s value type from a `Result` type.
    * @template R - The Result type to extract the value from. Must extends `Result`
    */
-  export type ExtractOk<R extends AnyResult> = R extends Result<infer V, any>
+  export type ExtractOk<R extends Any> = R extends Result<infer V, any>
     ? V
     : never;
 

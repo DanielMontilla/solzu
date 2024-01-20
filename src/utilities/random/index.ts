@@ -39,18 +39,7 @@ export namespace nextFloat {
       .check(({ min }) => isNumber(min), between.error.InvalidInput)
       .check(({ max }) => isNumber(max), between.error.InvalidInput)
       .check(({ min, max }) => min <= max, between.error.InvalidRange)
-      .map(({ min, max }) => betweenU(min, max));
-  }
-
-  /**
-   * Generates a random floating-point number between the specified minimum and maximum range without validation.
-   * This function expects the inputs are valid numbers with `min <= max`. Otherwise might behave in unexpected ways.
-   * @param {number} min - The minimum number in the range.
-   * @param {number} max - The maximum number in the range.
-   * @returns {number} A random floating-point number between min and max.
-   */
-  export function betweenU(min: number, max: number): number {
-    return Math.random() * (max - min) + min;
+      .map(({ min, max }) => between.unsafe(min, max));
   }
 
   export namespace between {
@@ -59,6 +48,17 @@ export namespace nextFloat {
       ["InvalidRange", "InvalidInput"] as const,
       "nextFloat@between"
     );
+
+    /**
+     * Generates a random floating-point number between the specified minimum and maximum range without validation.
+     * This function expects the inputs are valid numbers with `min <= max`. Otherwise might behave in unexpected ways.
+     * @param {number} min - The minimum number in the range.
+     * @param {number} max - The maximum number in the range.
+     * @returns {number} A random floating-point number between min and max.
+     */
+    export function unsafe(min: number, max: number): number {
+      return Math.random() * (max - min) + min;
+    }
   }
 }
 
@@ -102,18 +102,7 @@ export namespace nextInt {
       .check(({ min }) => isInt(min), between.error.InvalidInput)
       .check(({ max }) => isInt(max), between.error.InvalidInput)
       .check(({ min, max }) => min <= max, between.error.InvalidRange)
-      .map(({ min, max }) => betweenU(min, max));
-  }
-
-  /**
-   * Generates a random integer between the specified minimum and maximum range (inclusive) without validation.
-   * This function expects the inputs are valid numbers with `min <= max`. Otherwise might behave in unexpected ways.
-   * @param {number} min - The minimum number in the range (inclusive).
-   * @param {number} max - The maximum number in the range (inclusive).
-   * @returns {number} A random integer between min and max (inclusive).
-   */
-  export function betweenU(min: number, max: number): number {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+      .map(({ min, max }) => between.unsafe(min, max));
   }
 
   export namespace between {
@@ -122,6 +111,17 @@ export namespace nextInt {
       ["InvalidRange", "InvalidInput"] as const,
       "nextInt@between"
     );
+
+    /**
+     * Generates a random integer between the specified minimum and maximum range (inclusive) without validation.
+     * This function expects the inputs are valid numbers with `min <= max`. Otherwise might behave in unexpected ways.
+     * @param {number} min - The minimum number in the range (inclusive).
+     * @param {number} max - The maximum number in the range (inclusive).
+     * @returns {number} A random integer between min and max (inclusive).
+     */
+    export function unsafe(min: number, max: number): number {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
   }
 }
 
@@ -135,23 +135,23 @@ export namespace nextInt {
 export function nextIndex(array: Array<any>): Result<number, nextIndex.Error> {
   return Result.Ok(array)
     .check<nextIndex.Error>(isNotEmptyArray, nextIndex.error.EmptyArray)
-    .map(nextIndexU);
-}
-
-/**
- * Generates a random index for a given non-empty array with a flat distribution.
- * Assumes the array is not empty.
- *
- * @param array The non-empty array to calculate a random index for.
- * @returns `number` A randomly picked index of the array.
- */
-export function nextIndexU(array: Array<any>): number {
-  return nextInt(array.length - 1);
+    .map(nextIndex.unsafe);
 }
 
 export namespace nextIndex {
   export type Error = (typeof error)[keyof typeof error];
   export const error = defineEnum(["EmptyArray"] as const, "nextIndex");
+
+  /**
+   * Generates a random index for a given non-empty array with a flat distribution.
+   * Assumes the array is not empty.
+   *
+   * @param array The non-empty array to calculate a random index for.
+   * @returns `number` A randomly picked index of the array.
+   */
+  export function unsafe(array: Array<any>): number {
+    return nextInt(array.length - 1);
+  }
 }
 
 export function nextKey(

@@ -72,8 +72,8 @@ export function defineEnum<Keys extends readonly string[]>(
  * @returns {Readonly<{ [K in Keys[number]]: `${Prefix}.${K}` }>} A readonly object with keys as the elements of the input array and values as the prefixed keys with a dot separator.
  */
 export function defineEnum<
-  Keys extends readonly string[],
-  Prefix extends string,
+  const Keys extends readonly string[],
+  const Prefix extends string,
 >(
   keys: Keys,
   prefix: Prefix

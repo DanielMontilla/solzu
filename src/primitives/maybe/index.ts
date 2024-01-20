@@ -9,11 +9,11 @@ import {
 } from "../..";
 
 export abstract class Maybe<V> {
+  abstract take(): V;
+
   abstract isSome(): this is Some<V>;
 
   abstract isNone(): this is None;
-
-  abstract take(): V;
 
   abstract takeWith(error: void): V;
 
@@ -144,7 +144,7 @@ export class None extends Maybe<Never> {
   }
 
   take(): Never {
-    throw new Error();
+    throw Maybe.ERROR.take;
   }
 
   takeWith(error: void): never;
@@ -188,6 +188,14 @@ export class None extends Maybe<Never> {
     if (error !== undefined) return Result.Err(error);
     return Result.Err<void>();
   }
+
+  /**
+   *
+   * @todo stuff
+   */
+  populate<V>(): Maybe<V> {
+    return this;
+  }
 }
 
 export namespace Maybe {
@@ -196,4 +204,8 @@ export namespace Maybe {
   export type Extract<O extends Maybe<any>> = O extends Maybe<infer U>
     ? U
     : never;
+
+  export const ERROR = {
+    take: new Error("Trying to take value from `None` instance"),
+  } as const;
 }

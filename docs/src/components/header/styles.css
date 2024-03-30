@@ -1,0 +1,7 @@
+.form-control:focus-within .kbd-wrapper {
+  opacity: 0;
+}
+
+.option-dropdown {
+  @apply flex items-center justify-center space-x-0;
+}

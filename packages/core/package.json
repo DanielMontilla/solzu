@@ -1,0 +1,43 @@
+{
+  "author": "Daniel Montilla",
+  "name": "solzu",
+  "scripts": {
+    "build": "tsc && vite build",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "vite": "^4.2.0",
+    "vite-plugin-dts": "^2.1.0",
+    "vitest": "^0.29.8"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/solzu.js",
+      "require": "./dist/solzu.umd.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "description": "collections of usefull typescript stuff",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DanielMontilla/solzu"
+  },
+  "private": false,
+  "version": "1.0.0",
+  "type": "module",
+  "license": "ISC",
+  "main": "./dist/solzu.js",
+  "module": "./dist/solzu.umd.cjs",
+  "types": "./dist/index.d.ts",
+  "keywords": [
+    "typescript"
+  ],
+  "bugs": {
+    "url": "https://github.com/DanielMontilla/solzu/issues"
+  },
+  "homepage": "https://github.com/DanielMontilla/solzu#readme"
+}

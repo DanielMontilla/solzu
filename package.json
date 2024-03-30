@@ -1,45 +1,14 @@
 {
-  "author": "Daniel Montilla montilla.d2000@gmail.com",
-  "name": "solzu",
-  "description": "A collection of useful functions and types!",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/DanielMontilla/solzu"
-  },
-  "private": false,
-  "version": "0.1.0",
-  "type": "module",
-  "license": "ISC",
-  "main": "./dist/solzu.js",
-  "module": "./dist/solzu.umd.cjs",
-  "types": "./dist/index.d.ts",
-  "keywords": [
-    "typescript"
-  ],
-  "exports": {
-    ".": {
-      "import": "./dist/solzu.js",
-      "require": "./dist/solzu.umd.cjs",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "files": [
-    "dist"
-  ],
+  "name": "packages",
+  "version": "1.0.0",
   "scripts": {
-    "build": "tsc && vite build",
-    "test": "vitest"
+    "core:test": "pnpm --filter solzu test",
+    "core:build": "pnpm --filter solzu build"
   },
+  "keywords": [],
+  "author": "Daniel Montilla",
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "prettier": "^3.1.1",
-    "typescript": "^4.9.3",
-    "vite": "^4.2.0",
-    "vite-plugin-dts": "^2.1.0",
-    "vitest": "^0.29.8"
-  },
-  "bugs": {
-    "url": "https://github.com/DanielMontilla/solzu/issues"
-  },
-  "homepage": "https://github.com/DanielMontilla/solzu#readme"
+    "typescript": "^5.4.2",
+    "prettier": "^3.2.5"
+  }
 }

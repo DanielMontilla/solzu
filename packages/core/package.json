@@ -5,18 +5,31 @@
     "build": "tsc && vite build",
     "test": "vitest"
   },
+  "main": "./dist/index.js",
+  "module": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./@result": {
+      "import": "./dist/result/exclusives.js",
+      "require": "./dist/result/exclusives.cjs",
+      "types": "./dist/result/exclusives.d.ts"
+    },
+    "./@maybe": {
+      "import": "./dist/maybe/exclusives.js",
+      "require": "./dist/maybe/exclusives.cjs",
+      "types": "./dist/maybe/exclusives.d.ts"
+    }
+  },
   "devDependencies": {
     "@types/node": "^18.15.11",
     "vite": "^4.2.0",
     "vite-plugin-dts": "^2.1.0",
     "vitest": "^0.29.8"
-  },
-  "exports": {
-    ".": {
-      "import": "./dist/solzu.js",
-      "require": "./dist/solzu.umd.cjs",
-      "types": "./dist/index.d.ts"
-    }
   },
   "files": [
     "dist"
@@ -30,9 +43,6 @@
   "version": "1.0.0",
   "type": "module",
   "license": "ISC",
-  "main": "./dist/solzu.js",
-  "module": "./dist/solzu.umd.cjs",
-  "types": "./dist/index.d.ts",
   "keywords": [
     "typescript"
   ],

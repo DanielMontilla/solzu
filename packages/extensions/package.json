@@ -1,0 +1,22 @@
+{
+  "name": "@solzu/extensions",
+  "private": false,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && vite build",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "solzu": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "vite": "^4.2.0",
+    "vite-plugin-dts": "^2.1.0",
+    "vitest": "^0.29.8"
+  },
+  "files": [
+    "dist"
+  ]
+}

@@ -5,10 +5,15 @@ import dts from "vite-plugin-dts";
 export default defineConfig({
   build: {
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
+      entry: {
+        index: resolve(__dirname, "src/index.ts"),
+        "result/exclusives": resolve(__dirname, "src/result/exclusives.ts"),
+        "maybe/exclusives": resolve(__dirname, "src/maybe/exclusives.ts"),
+      },
       name: "solzu",
-      fileName: "solzu",
-      formats: ["es", "umd"],
+      formats: ["es", "cjs"],
+      fileName: (format, name) =>
+        format === "es" ? `${name}.js` : `${name}.${format}`,
     },
     minify: true,
   },

@@ -1,20 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { isNothing, Nothing, NOTHING_CLASSIFIER, NOTHING_SPECIFIER } from ".";
-import { $CLASSIFIER, $SPECIFIER } from "../data";
-
-describe("Nothing", () => {
-  it("should match its runtime specifier w/ explicit specifier", () => {
-    const value = Nothing();
-
-    expect(value).toHaveProperty($SPECIFIER, NOTHING_SPECIFIER);
-  });
-
-  it("should match its runtime classifier w/ explicit classifier", () => {
-    const value = Nothing();
-
-    expect(value).toHaveProperty($CLASSIFIER, NOTHING_CLASSIFIER);
-  });
-});
+import { Nothing, isNothing } from "..";
+import { $SPECIFIER, $CLASSIFIER } from "../../data";
 
 describe("isNothing", () => {
   it("should return true for Nothing instance", () => {

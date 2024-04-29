@@ -15,21 +15,21 @@
       "types": "./dist/index.d.ts"
     },
     "./@result": {
-      "import": "./dist/result/exclusives.js",
-      "require": "./dist/result/exclusives.cjs",
-      "types": "./dist/result/exclusives.d.ts"
+      "import": "./dist/result/scoped.js",
+      "require": "./dist/result/scoped.cjs",
+      "types": "./dist/result/scoped.d.ts"
     },
     "./@maybe": {
-      "import": "./dist/maybe/exclusives.js",
-      "require": "./dist/maybe/exclusives.cjs",
-      "types": "./dist/maybe/exclusives.d.ts"
+      "import": "./dist/maybe/scoped.js",
+      "require": "./dist/maybe/scoped.cjs",
+      "types": "./dist/maybe/scoped.d.ts"
     }
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "vite": "^4.2.0",
-    "vite-plugin-dts": "^2.1.0",
-    "vitest": "^0.29.8"
+    "@types/node": "^20.12.7",
+    "vite": "^5.2.10",
+    "vite-plugin-dts": "^3.9.0",
+    "vitest": "^1.5.2"
   },
   "files": [
     "dist"

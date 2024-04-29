@@ -1,69 +1,82 @@
-import { Callback, Procedure } from "../types";
+import { Procedure, Operator } from "../types";
 
-export function job<Initial>(value: Initial | Callback<Initial>): Initial;
-export function job<Initial, Output>(
-  value: Initial | Callback<Initial>,
-  $0: Procedure<Initial, Output>
-): Output;
-export function job<Start, A, Output>(
-  value: Start | Callback<Start>,
-  $0: Procedure<Start, A>,
-  $1: Procedure<A, Output>
-): Output;
-export function job<Start, A, B, Output>(
-  value: Start | Callback<Start>,
-  $0: Procedure<Start, A>,
-  $1: Procedure<A, B>,
-  $2: Procedure<B, Output>
-): Output;
-export function job<Start, A, B, C, Output>(
-  value: Start | Callback<Start>,
-  $0: Procedure<Start, A>,
-  $1: Procedure<A, B>,
-  $2: Procedure<B, C>,
-  $3: Procedure<C, Output>
-): Output;
-export function job<Start, A, B, C, D, Output>(
-  value: Start | Callback<Start>,
-  $0: Procedure<Start, A>,
-  $1: Procedure<A, B>,
-  $2: Procedure<B, C>,
-  $3: Procedure<C, D>,
-  $4: Procedure<D, Output>
-): Output;
-export function job<Start, A, B, C, D, E, Output>(
-  value: Start | Callback<Start>,
-  $0: Procedure<Start, A>,
-  $1: Procedure<A, B>,
-  $2: Procedure<B, C>,
-  $3: Procedure<C, D>,
-  $4: Procedure<D, E>,
-  $5: Procedure<E, Output>
-): Output;
-export function job<Start, A, B, C, D, E, F, Output>(
-  value: Start | Callback<Start>,
-  $0: Procedure<Start, A>,
-  $1: Procedure<A, B>,
-  $2: Procedure<B, C>,
-  $3: Procedure<C, D>,
-  $4: Procedure<D, E>,
-  $5: Procedure<E, F>,
-  $6: Procedure<F, Output>
-): Output;
-export function job<Start, A, B, C, D, E, F, G, Output>(
-  value: Start | Callback<Start>,
-  $0: Procedure<Start, A>,
-  $1: Procedure<A, B>,
-  $2: Procedure<B, C>,
-  $3: Procedure<C, D>,
-  $4: Procedure<D, E>,
-  $5: Procedure<E, F>,
-  $6: Procedure<F, G>,
-  $7: Procedure<G, Output>
+/**
+ * @description takes `input` through a sequence of transformations
+ * @template Input type of passed value
+ * @template Output type of expected output
+ * @param {Input | Procedure<Input>} input starting value
+ * @returns {Output} output. End value
+ */
+export function job<Input, Output>(
+  input: Input | Procedure<Input>,
+  operator: Operator<Input, Output>
 ): Output;
 
-export function job(valueOrFn: any, ...procedures: Function[]): any {
-  let result = typeof valueOrFn === "function" ? valueOrFn() : valueOrFn;
-  for (let procedure of procedures) result = procedure(result);
+export function job<Input, A, Output>(
+  input: Input | Procedure<Input>,
+  operatorA: Operator<Input, A>,
+  operator: Operator<A, Output>
+): Output;
+
+export function job<Input, A, B, Output>(
+  input: Input | Procedure<Input>,
+  operatorA: Operator<Input, A>,
+  operatorB: Operator<A, B>,
+  operator: Operator<B, Output>
+): Output;
+
+export function job<Input, A, B, C, Output>(
+  input: Input | Procedure<Input>,
+  operatorA: Operator<Input, A>,
+  operatorB: Operator<A, B>,
+  operatorC: Operator<B, C>,
+  operator: Operator<C, Output>
+): Output;
+
+export function job<Input, A, B, C, D, Output>(
+  input: Input | Procedure<Input>,
+  operatorA: Operator<Input, A>,
+  operatorB: Operator<A, B>,
+  operatorC: Operator<B, C>,
+  operatorD: Operator<C, D>,
+  operator: Operator<D, Output>
+): Output;
+
+export function job<Input, A, B, C, D, E, Output>(
+  input: Input | Procedure<Input>,
+  operatorA: Operator<Input, A>,
+  operatorB: Operator<A, B>,
+  operatorC: Operator<B, C>,
+  operatorD: Operator<C, D>,
+  operatorE: Operator<D, E>,
+  operator: Operator<E, Output>
+): Output;
+
+export function job<Input, A, B, C, D, E, F, Output>(
+  input: Input | Procedure<Input>,
+  operatorA: Operator<Input, A>,
+  operatorB: Operator<A, B>,
+  operatorC: Operator<B, C>,
+  operatorD: Operator<C, D>,
+  operatorE: Operator<D, E>,
+  operatorF: Operator<E, F>,
+  operator: Operator<F, Output>
+): Output;
+
+export function job<Input, A, B, C, D, E, F, G, Output>(
+  input: Input | Procedure<Input>,
+  operatorA: Operator<Input, A>,
+  operatorB: Operator<A, B>,
+  operatorC: Operator<B, C>,
+  operatorD: Operator<C, D>,
+  operatorE: Operator<D, E>,
+  operatorF: Operator<E, F>,
+  operatorG: Operator<F, G>,
+  operator: Operator<G, Output>
+): Output;
+
+export function job(input: any, ...operators: Function[]): any {
+  let result = typeof input === "function" ? input() : input;
+  for (let procedure of operators) result = procedure(result);
   return result;
 }

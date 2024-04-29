@@ -1,4 +1,4 @@
-import { Nothing, Procedure } from "..";
+import { Nothing, Operator } from "..";
 
 export type Ok<V> = { kind: "ok"; value: V };
 export type Err<E> = { kind: "err"; error: E };
@@ -9,6 +9,14 @@ export namespace Result {
   export type OkOf<R extends Any> = R extends Ok<infer V> ? V : never;
   export type ErrOf<R extends Any> = R extends Err<infer E> ? E : never;
 }
+
+/**
+ * @description shorthand for promise of result
+ * @template V inner `Ok` type. Defaults to `Nothing`
+ * @template E inner `Err` type. Defaults to `Nothing`
+ * @returns {Promise<Result<V, E>>}
+ */
+export type Task<V = Nothing, E = Nothing> = Promise<Result<V, E>>;
 
 export type OkOf<R extends Result.Any> = Result.OkOf<R>;
 export type ErrOf<R extends Result.Any> = Result.ErrOf<R>;
@@ -32,19 +40,32 @@ export function Err<E>(error?: E): Err<E> | Err<E | Nothing> {
     : { kind: "err", error: Nothing() };
 }
 
-export function isOk<R extends Result.Any>(result: R): result is OkOf<R> {
+export function isOk<V>(result: Result<V, any>): result is Ok<V> {
   return result.kind === "ok";
 }
 
-export function isErr<R extends Result.Any>(result: R): result is ErrOf<R> {
+export const notErr = isOk;
+
+export function isErr<E>(result: Result<any, E>): result is Err<E> {
   return result.kind === "err";
 }
 
-export function onOk<R extends Result.Any>(
-  f: (ok: OkOf<R>) => any
-): Procedure<R, R> {
-  return (result: R): R => {
+export const notOk = isErr;
+
+export function onOk<V>(
+  f: (ok: V) => any
+): Operator<Result<V, any>, Result<V, any>> {
+  return (result: Result<V, any>): Result<V, any> => {
     if (isOk(result)) f(result.value);
+    return result;
+  };
+}
+
+export function onErr<E>(
+  f: (err: E) => any
+): Operator<Result<any, E>, Result<any, E>> {
+  return result => {
+    if (isErr(result)) f(result.error);
     return result;
   };
 }

@@ -1,1 +1,1 @@
-export * from "./procedure";
+export * from "./function";

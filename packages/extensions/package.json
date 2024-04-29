@@ -11,10 +11,10 @@
     "solzu": "workspace:^"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "vite": "^4.2.0",
-    "vite-plugin-dts": "^2.1.0",
-    "vitest": "^0.29.8"
+    "@types/node": "^20.12.7",
+    "vite": "^5.2.10",
+    "vite-plugin-dts": "^3.9.0",
+    "vitest": "^1.5.2"
   },
   "files": [
     "dist"

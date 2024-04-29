@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { job } from ".";
+import { job } from "..";
 
-describe("job", () => {
+describe("job [runtime]", () => {
   it("should pass", () => {
     const value = "hello";
     const op = (v: string) => `${v} world`;

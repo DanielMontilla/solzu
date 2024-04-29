@@ -4,6 +4,7 @@ import { Operator, Procedure } from "../types";
 export type Flatten<M extends Maybe.Any> = Maybe.Flatten<M>;
 
 /**
+ * Converts nullish value into `Maybe`
  * @constructor
  * @template V value
  * @param {V} value
@@ -15,10 +16,11 @@ export function FromNullish<V>(value: V): Maybe<Exclude<V, null | undefined>> {
 }
 
 /**
+ * Converts `Promise` into `Future`.
  * @constructor
  * @template V inner `Some` type
- * @param {Promise<V>} promise
- * @returns {Future<V>} a future with inner maybe value
+ * @param {Promise<V>} promise target promise
+ * @returns {Future<V>} a future. `Some` if the promise resolved with expected value. `None` if it threw error/failed.
  * @see {@link Future}
  */
 export async function FromPromise<V>(promise: Promise<V>): Future<V> {
@@ -30,6 +32,7 @@ export async function FromPromise<V>(promise: Promise<V>): Future<V> {
 }
 
 /**
+ * Converts procedure that could potentially throw into `Maybe`
  * @constructor
  * @template V inner type of possible `Some` value
  * @param {Procedure<V>} procedure that could throw
@@ -142,9 +145,34 @@ export function flatten<M>(): Operator<Maybe<M>, Flatten<Maybe<M>>> {
   };
 }
 
-// export const flatmap =
-//   <M extends Maybe.Any, Output extends Maybe.Any = M>(
-//     f: (someValue: SomeOf<M>) => Output
-//   ): Operator<M, Output> =>
-//   (maybe: M): Output =>
-//     isSome(maybe) ? f(maybe.value) : (None() as Output);
+/**
+ * Combines `map` and `flatten`. Inner some value is mapped onto new `Maybe` which is then flattened.
+ * @template From inner `Some` type of input maybe
+ * @template To inner `Some` type of output maybe
+ * @param {Operator<From, Maybe<To>>} mapper mapping function
+ * @see {@link map}
+ * @see {@link flatten}
+ */
+export function flatmap<From, To>(
+  mapper: (some: From) => Maybe<To>
+): Operator<Maybe<From>, Maybe<To>> {
+  return maybe => {
+    if (isSome(maybe)) return mapper(maybe.value);
+    return None();
+  };
+}
+
+/**
+ * Checks `Some`'s value againts provided predicated condition. If passed returns the same `Some`, otherwise `None`
+ * @template V inner `Some`'s value type
+ * @param {Operator<V, boolean>} predicate function to check inner `Some` value (if it exists)
+ * @returns {Operator<Maybe<V>, Maybe<V>>} function that takes `Maybe` and returns same `Maybe` if instance of `Some` and predicate evaluates to `true`. Otherwise `None`
+ */
+export function check<V>(
+  predicate: (some: V) => boolean
+): Operator<Maybe<V>, Maybe<V>> {
+  return maybe => {
+    if (isSome(maybe)) return predicate(maybe.value) ? maybe : None();
+    return None();
+  };
+}

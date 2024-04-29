@@ -18,7 +18,4 @@ export default defineConfig({
     minify: true,
   },
   plugins: [dts()],
-  test: {
-    exclude: [...defaultExclude, "**/*@common.test.ts"],
-  },
 });

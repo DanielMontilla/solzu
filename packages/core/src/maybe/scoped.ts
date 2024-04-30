@@ -70,7 +70,7 @@ export function map<From, To>(
 }
 
 /**
- *  Error thrown for `take` operation
+ * Error thrown for `take` operation
  * @see {@link take}
  */
 export class TakeError extends Error {

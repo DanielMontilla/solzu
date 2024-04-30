@@ -1,19 +1,19 @@
 import { $CLASSIFIER, $SPECIFIER } from "../data";
 
 /**
+ * Unique classifier for `Nothing` type
  * @internal
- * @description unique classifier for `Nothing` type
  */
 export const NOTHING_CLASSIFIER = Symbol("solzu:core@nothing");
 
 /**
+ * Unique kind discriminator for `Nothing` type
  * @internal
- * @description unique kind discriminator for `Nothing` type
  */
 export const NOTHING_SPECIFIER = "nothing" as const;
 
 /**
- * @description explicit empty type
+ * Explicit empty type
  */
 export type Nothing = {
   readonly [$SPECIFIER]: "nothing";
@@ -27,7 +27,7 @@ let _nothing: undefined | Nothing;
 
 /**
  * @constructor
- * @returns {Nothing} nothing value
+ * @returns {Nothing} nothing instance
  */
 export const Nothing = (): Nothing =>
   _nothing !== undefined ? _nothing : (
@@ -35,7 +35,7 @@ export const Nothing = (): Nothing =>
   );
 
 /**
- *
+ * Checks if thing is instance of `Nothing`
  * @param {unknown} thing value to be checked
  * @returns {boolean} `true` thins is `Nothing`. Otherwise `false`
  */

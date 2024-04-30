@@ -2,68 +2,69 @@ import { Nothing } from "..";
 import { $CLASSIFIER, $SPECIFIER } from "../data";
 
 /**
+ * Unique classifier for `Some` type
  * @internal
- * @description unique classifier for `Some` type
  */
 export const SOME_CLASSIFIER = Symbol("solzu:core@some");
 
 /**
+ * Unique specifier discriminator for `Some` type
  * @internal
- * @description unique specifier discriminator for `Some` type
  */
 export const SOME_SPECIFIER = "some" as const;
 
 /**
+ * Unique classifier for `None` type
  * @internal
- * @description unique classifier for `None` type
  */
 export const NONE_CLASSIFIER = Symbol("solzu:core@none");
 
 /**
+ * Unique specifier discriminator for `None` type
  * @internal
- * @description unique specifier discriminator for `None` type
  */
 export const NONE_SPECIFIER = "none" as const;
 
 /**
- * @description represents the presence of a value
+ * Represents the presence of a value
  * @template V type of inner value
  */
 export type Some<V> = {
-  readonly [$SPECIFIER]: "some";
   readonly [$CLASSIFIER]: typeof SOME_CLASSIFIER;
+  readonly [$SPECIFIER]: "some";
   readonly value: V;
 };
 
 /**
- * @description represents the absence  of a value
+ * Represents the absence of a value
  */
 export type None = {
-  readonly [$SPECIFIER]: "none";
   readonly [$CLASSIFIER]: typeof NONE_CLASSIFIER;
+  readonly [$SPECIFIER]: "none";
 };
 
 /**
- * @description either `Some<V>` or `None`
+ * Either `Some<V>` or `None`
  * @template V type of some's inner value
  */
 export type Maybe<V> = Some<V> | None;
 
 export namespace Maybe {
   /**
-   * @description generic maybe type. Extends `any` other maybe
+   * Generic `Maybe` type. Extends `any` other maybe
    */
   export type Any = Maybe<any>;
 
   /**
-   * @template M generic maybe
-   * @returns inner some value
+   * Extracts the inner `Some` type
+   * @template M any `Maybe`
+   * @returns inner `Some` type
    */
   export type SomeOf<M extends Any> = M extends Some<infer V> ? V : never;
 
   /**
-   * @description flattens nested maybes of any depth
-   * @returns {Maybe<V>} single maybe type
+   * Flattens nested maybes of any depth
+   * @returns {Maybe<V>} `Maybe` of depth 1
    */
   export type Flatten<M extends Any> =
     M extends Maybe<infer O> ?
@@ -74,31 +75,33 @@ export namespace Maybe {
 }
 
 /**
- * @description shorthand for promise of maybe
- * @template V inner `Some` type
+ * Shorthand for `Promise` of a `Maybe`
+ * @template V inner `Some` value type
  * @returns {Promise<Maybe<V>>}
  */
 export type Future<V> = Promise<Maybe<V>>;
 
 /**
- * @description re-export of `Maybe.SomeOf`
+ * Alias for `Maybe.SomeOf`
+ * @template M any `Maybe`
+ * @returns inner `Some` type
  * @see {@link Maybe.SomeOf}
- * @template M generic maybe
- * @returns inner some value
  */
 export type SomeOf<M extends Maybe.Any> = Maybe.SomeOf<M>;
 
 /**
+ * Creates empty `Some`
  * @constructor
- * @returns {Some<None>} empty some
+ * @returns {Some<None>} empty `Some`
  */
 export function Some(): Some<Nothing>;
 
 /**
+ * Creates `Some` w/ inner `value`
  * @constructor
+ * @template V inner `value` type
  * @param {V} value
- * @template V inner value type
- * @returns {Some<V>} some with inner `value`
+ * @returns {Some<V>} `Some` with inner `value`
  */
 export function Some<V>(value: V): Some<V>;
 
@@ -107,8 +110,8 @@ export function Some<V>(value: V): Some<V>;
  */
 export function Some<V>(value?: V): Some<V> | Some<Nothing> {
   return {
-    [$SPECIFIER]: SOME_SPECIFIER,
     [$CLASSIFIER]: SOME_CLASSIFIER,
+    [$SPECIFIER]: SOME_SPECIFIER,
     value: value !== undefined ? value : Nothing(),
   } as Some<V> | Some<Nothing>;
 }
@@ -119,16 +122,18 @@ export function Some<V>(value?: V): Some<V> | Some<Nothing> {
 let _none: undefined | None;
 
 /**
+ * Creates `None`
  * @constructor
- * @returns {None} none
+ * @returns {None} `None`
  */
 export function None(): None {
   return _none !== undefined ? _none : (
-      (_none = { [$SPECIFIER]: NONE_SPECIFIER, [$CLASSIFIER]: NONE_CLASSIFIER })
+      (_none = { [$CLASSIFIER]: NONE_CLASSIFIER, [$SPECIFIER]: NONE_SPECIFIER })
     );
 }
 
 /**
+ * Creates `None`, with type of `Maybe<V>`
  * @constructor
  * @template V inner `some` type
  * @returns {Maybe<V>} maybe. At runtime this will be a `None`
@@ -136,6 +141,7 @@ export function None(): None {
 export function Maybe<V>(): Maybe<V>;
 
 /**
+ * Creates `Some<V>` with type of `Maybe<V>`
  * @template V inner `some` type
  * @param {V} value inner `some` value
  * @returns {Maybe<V>} maybe. At runtime this will be a `Some<V>`
@@ -150,7 +156,8 @@ export function Maybe<V>(value?: V): Maybe<V> {
 }
 
 /**
- * @template V inner `some` type
+ * Checks if provided `Maybe` is of type `Some`
+ * @template V inner `Some` type
  * @param {Maybe<V>} maybe maybe to be checked
  * @returns {boolean} `true` if `Some`. Otherwise `false`
  */
@@ -159,7 +166,17 @@ export function isSome<V>(maybe: Maybe<V>): maybe is Some<V> {
 }
 
 /**
- * @template V inner `some` type
+ * Alias for `isSome`
+ * @template V inner `Some` type
+ * @param {Maybe<V>} maybe maybe to be checked
+ * @returns {boolean} `true` if `Some`. Otherwise `false`
+ * @see {@link isSome}
+ */
+export const notNone = isSome;
+
+/**
+ * Checks if provided `Maybe` is of type `None`
+ * @template V inner `Some` type
  * @param {Maybe<V>} maybe maybe to be checked
  * @returns {boolean} `true` if `None`. Otherwise `false`
  */
@@ -168,6 +185,16 @@ export function isNone<V>(maybe: Maybe<V>): maybe is None {
 }
 
 /**
+ * Alais for `isNone`
+ * @template V inner `Some` type
+ * @param {Maybe<V>} maybe maybe to be checked
+ * @returns {boolean} `true` if `None`. Otherwise `false`
+ * @see {@link isNone}
+ */
+export const notSome = isNone;
+
+/**
+ * Checks if provided `thing` is of type `Maybe`
  * @template V inner `some` type
  * @param {unknown} thing value to be checked
  * @returns {boolean} `true` if thing is `Maybe`. Otherwise `false`

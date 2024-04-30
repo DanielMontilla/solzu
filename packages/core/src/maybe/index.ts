@@ -67,9 +67,9 @@ export namespace Maybe {
    * @returns {Maybe<V>} `Maybe` of depth 1
    */
   export type Flatten<M extends Any> =
-    M extends Maybe<infer O> ?
-      O extends Any ?
-        Flatten<O>
+    M extends Maybe<infer V> ?
+      V extends Any ?
+        Flatten<V>
       : M
     : never;
 }

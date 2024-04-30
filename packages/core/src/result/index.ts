@@ -70,6 +70,47 @@ export namespace Result {
    * @returns inner `Err` type
    */
   export type ErrOf<R extends Any> = R extends Err<infer E> ? E : never;
+
+  /**
+   * Flattens nested `Result` type once
+   * @template Root root `Result` type to flatten
+   * @returns `Result` flattened once. Root and nested `Err`s are combined (union) for resulting `Err` type
+   */
+  export type Flatten<Root extends Any> =
+    [Root] extends [Result<infer RootOk, infer RootErr>] ?
+      [RootOk] extends [Result<infer NestedOk, infer NestedErr>] ?
+        Result<NestedOk, RootErr | NestedErr>
+      : Root
+    : never;
+
+  /**
+   * Recursively flattens nested `Result` type **infinitely**. Not recommended for general use. Try simpler versions like `Flatten` or `BoundedUnfold`
+   * @template Root `Result` type to unfold
+   * @returns `Result` of depth 1. All `Err`'s are combined onto single union `Err`
+   * @see {@link Result.Flatten}
+   * @see {@link Result.BoundedUnfold}
+   */
+  export type Unfold<Root extends Any> =
+    [Root] extends [Result<infer RootOk, infer RootErr>] ?
+      [RootOk] extends [Result<infer NestedOk, infer NestedErr>] ?
+        Unfold<Result<NestedOk, NestedErr | RootErr>>
+      : Root
+    : never;
+
+  /**
+   * Recursively flattens nested `Result` type up to `Limit`. For an **infinite** version checkout `Result.Unfold` or simpler `Result.Flatten`
+   * @template Root `Result` type to unfold
+   * @returns `Result` of depth 1 if depth ≤ `Limit`. Otherwise the unfolded result up to `Limit`
+   * @see {@link Result.Unfold}
+   * @see {@link Result.Flatten}
+   */
+  export type BoundedUnfold<Root extends Any, Limit extends number> =
+    Limit extends 0 ? Root
+    : [Root] extends [Result<infer RootOk, infer RootErr>] ?
+      [RootOk] extends [Result<infer NestedOk, infer NestedErr>] ?
+        BoundedUnfold<Result<NestedOk, NestedErr | RootErr>, Decrement<Limit>>
+      : Root
+    : never;
 }
 
 /**

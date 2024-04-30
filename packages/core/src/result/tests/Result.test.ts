@@ -1,5 +1,4 @@
-import { describe, it } from "node:test";
-import { expectTypeOf } from "vitest";
+import { expectTypeOf, describe, it } from "vitest";
 import { Result, OkOf, ErrOf } from "..";
 
 describe("Result [runtime]", () => {

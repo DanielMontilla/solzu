@@ -1,5 +1,5 @@
 import { Future, Maybe, None, Some, isMaybe, isNone, isSome } from ".";
-import { Operator, Procedure } from "../types";
+import { Operator } from "../types";
 
 export type Flatten<M extends Maybe.Any> = Maybe.Flatten<M>;
 
@@ -35,24 +35,26 @@ export async function FromPromise<V>(promise: Promise<V>): Future<V> {
  * Converts procedure that could potentially throw into `Maybe`
  * @constructor
  * @template V inner type of possible `Some` value
- * @param {Procedure<V>} procedure that could throw
+ * @param {Procedure<V>} f that could throw
  * @returns {Maybe<V>} `Some` if procedure succeeds. `None` if it throws error
  */
-export function FromTryCatch<V>(procedure: Procedure<V>): Maybe<V> {
+export function FromTryCatch<V>(f: () => V): Maybe<V> {
   try {
-    return Some(procedure());
+    return Some(f());
   } catch (_) {
     return None();
   }
 }
 
 /**
- * Transforms the inner value of `Some` with the provided mapping function. Otherwise, returns `None`.
- * @template From inner `Some` type of input
- * @template To expected output type of mapping return
- * @param {Operator<From, To>} mapper mapping function
- * @returns {Operator<Maybe<From>, Maybe<From | To>>} maybe of original `Some` type or output type.
+ * Transforms the inner value of `Some` with the provided mapping function. Otherwise, returns `None`
+ * @template From input `Maybe`s `Some` value
+ * @template To output `Maybe`s `Some` value
+ * @param {Mapper<From, To>} mapper mapping function
+ * @returns {Operator<Maybe<From>, Maybe<From | To>>} maybe of original `Some` type or output type
+ * ### Use
  * @example
+ * ```
  * const some = Some(1);
  * const none = None();
  * const mapper = (x: number) => x + 1;
@@ -62,6 +64,7 @@ export function FromTryCatch<V>(procedure: Procedure<V>): Maybe<V> {
  *
  * const mappedNone = map(mapper)(none);
  * console.log(mappedNone); // None
+ * ```
  */
 export function map<From, To>(
   mapper: (some: From) => To
@@ -147,8 +150,8 @@ export function flatten<M>(): Operator<Maybe<M>, Flatten<Maybe<M>>> {
 
 /**
  * Combines `map` and `flatten`. Inner some value is mapped onto new `Maybe` which is then flattened.
- * @template From inner `Some` type of input maybe
- * @template To inner `Some` type of output maybe
+ * @template From inputs `Maybe`s `Some` value type
+ * @template To output `Maybe`s `Some` value type
  * @param {Operator<From, Maybe<To>>} mapper mapping function
  * @see {@link map}
  * @see {@link flatten}
@@ -174,5 +177,12 @@ export function check<V>(
   return maybe => {
     if (isSome(maybe)) return predicate(maybe.value) ? maybe : None();
     return None();
+  };
+}
+
+export function peek<V>(f: (some: V) => any): Operator<Maybe<V>, Maybe<V>> {
+  return maybe => {
+    if (isSome(maybe)) f(maybe.value);
+    return maybe;
   };
 }

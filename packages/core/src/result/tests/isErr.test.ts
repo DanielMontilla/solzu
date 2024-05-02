@@ -1,0 +1,41 @@
+import { describe, it, expect, expectTypeOf } from "vitest";
+import { Err, isErr, Ok, Result } from "..";
+
+describe("isOk [runtime]", () => {
+  it("should return true when Err is passed in", () => {
+    const err = Err();
+    const value = isErr(err);
+
+    expect(value).toBe(true);
+  });
+
+  it("should return false when Ok is passed in", () => {
+    const ok = Ok();
+    const value = isErr(ok);
+
+    expect(value).toBe(false);
+  });
+});
+
+describe("isOk [types]", () => {
+  it("should narrow type via control flow inference", () => {
+    type Value = { "🖖": "👽" };
+    type Error = string;
+
+    const value = Result<Value, Error>("err", "hello");
+
+    if (isErr(value)) {
+      type Test = typeof value;
+      type Expected = Err<Error>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    }
+
+    if (!isErr(value)) {
+      type Test = typeof value;
+      type Expected = Ok<Value>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    }
+  });
+});

@@ -1,7 +1,108 @@
-import { expectTypeOf, describe, it } from "vitest";
-import { Result, OkOf, ErrOf } from "..";
+import { expectTypeOf, describe, it, expect } from "vitest";
+import { Result, OkOf, ErrOf, isOk, isErr } from "..";
+import { Nothing } from "../../nothing";
 
 describe("Result [runtime]", () => {
+  it("should create empty Ok when passed in 'kind' of ok wo/ value", () => {
+    const ok = Result("ok");
+
+    expect(isOk(ok)).toBe(true);
+    expect(ok).toHaveProperty("value", Nothing());
+  });
+
+  it("should create Ok when passed in 'kind' of ok and value", () => {
+    const value = 0x100;
+    const ok = Result("ok", value);
+
+    expect(isOk(ok)).toBe(true);
+    expect(ok).toHaveProperty("value", value);
+  });
+
+  it("should create empty Err when passed in 'kind' of err wo/ error", () => {
+    const err = Result("err");
+
+    expect(isErr(err)).toBe(true);
+    expect(err).toHaveProperty("error", Nothing());
+  });
+
+  it("should create Err when passed in 'kind' or err and error", () => {
+    const error = "custom error";
+    const err = Result("err", error);
+
+    expect(isErr(err)).toBe(true);
+    expect(err).toHaveProperty("error", error);
+  });
+});
+
+describe("Result [types]", () => {
+  it("should be type Result<Nothing, Nothing> when passed in 'kind' ok with no value", () => {
+    const result = Result("err");
+
+    type Test = typeof result;
+    type Expected = Result<Nothing, Nothing>;
+
+    expectTypeOf<Test>().toMatchTypeOf<Expected>();
+  });
+
+  it("should be type Result<Nothing, Nothing> when passed in 'kind' err with no error", () => {
+    const result = Result("err");
+
+    type Test = typeof result;
+    type Expected = Result<Nothing, Nothing>;
+
+    expectTypeOf<Test>().toMatchTypeOf<Expected>();
+  });
+
+  it("should be type Result<Value, Nothing> when passed in 'kind' ok with value", () => {
+    type Value = string;
+
+    const value: Value = "str";
+    const result = Result("ok", value);
+
+    type Test = typeof result;
+    type Expected = Result<Value, Nothing>;
+
+    expectTypeOf<Test>().toMatchTypeOf<Expected>();
+  });
+
+  it("should be type Result<Nothing, Error> when passed in 'kind' err with error", () => {
+    type Error = boolean;
+
+    const error: Error = true;
+    const result = Result("err", error);
+
+    type Test = typeof result;
+    type Expected = Result<Nothing, Error>;
+
+    expectTypeOf<Test>().toMatchTypeOf<Expected>();
+  });
+
+  it("should be type Result<Value, Error> when passed in 'kind' ok with value and Error template argument", () => {
+    type Value = number;
+    type Error = string;
+
+    const value: Value = 0xf;
+    const result = Result<Value, Error>("ok", value);
+
+    type Test = typeof result;
+    type Expected = Result<Value, Error>;
+
+    expectTypeOf<Test>().toMatchTypeOf<Expected>();
+  });
+
+  it("should be type Result<Value, Error> when passed in 'kind' err with error and Value template argument", () => {
+    type Value = boolean;
+    type Error = string;
+
+    const error: Error = "👽";
+    const result = Result<Value, Error>("err", error);
+
+    type Test = typeof result;
+    type Expected = Result<Value, Error>;
+
+    expectTypeOf<Test>().toMatchTypeOf<Expected>();
+  });
+
   describe("OkOf", () => {
     it("should extract the Ok value from result", () => {
       type OkValue = number;
@@ -21,7 +122,6 @@ describe("Result [runtime]", () => {
       expectTypeOf<Test>().toMatchTypeOf<ErrValue>();
     });
   });
-
   describe("Flatten", () => {
     it("should return the original result if not nested", () => {
       type Expected = Result<boolean, string>;

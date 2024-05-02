@@ -1,4 +1,4 @@
-import { Nothing, Operator } from "..";
+import { Decrement, Nothing } from "..";
 import { $CLASSIFIER, $SPECIFIER } from "../data";
 
 /**
@@ -192,6 +192,14 @@ export function Err<E>(error?: E): Err<E> | Err<Nothing> {
 }
 
 /**
+ * Creates `Ok` with type of `Result<Nothing, Nothing>`
+ * @constructor
+ * @param {"ok"} kind
+ * @returns {Result<Nothing, Nothing>} `Result` of type `Ok<Nothing>`
+ */
+export function Result(kind: "ok"): Result<Nothing, Nothing>;
+
+/**
  * Creates `Ok` with type of `Result<V, Nothing>`
  * @constructor
  * @template V type of inner `Ok` value
@@ -200,16 +208,6 @@ export function Err<E>(error?: E): Err<E> | Err<Nothing> {
  * @returns {Result<V, Nothing>} `Result` of type `Ok` with inner `value`
  */
 export function Result<V>(kind: "ok", value: V): Result<V, Nothing>;
-
-/**
- * Creates `Err` with type of `Result<Nothing, E>`
- * @constructor
- * @template E type of inner `Err` error
- * @param {"err"} kind
- * @param {E} error inner `Err` error
- * @returns {Result<Nothing, E>} `Result` of type `Err` with inner `error`
- */
-export function Result<E>(kind: "err", error: E): Result<Nothing, E>;
 
 /**
  * Creates `Ok` with type of `Result<V, E>`
@@ -224,6 +222,24 @@ export function Result<V = Nothing, E = Nothing>(
   kind: "ok",
   value: V
 ): Result<V, E>;
+
+/**
+ * Creates `Err` with type of `Result<Nothing, Nothing>`
+ * @constructor
+ * @param {"err"} kind
+ * @returns {Result<Nothing, Nothing>} `Result` of type `Err<Nothing>`
+ */
+export function Result(kind: "err"): Result<Nothing, Nothing>;
+
+/**
+ * Creates `Err` with type of `Result<Nothing, E>`
+ * @constructor
+ * @template E type of inner `Err` error
+ * @param {"err"} kind
+ * @param {E} error inner `Err` error
+ * @returns {Result<Nothing, E>} `Result` of type `Err` with inner `error`
+ */
+export function Result<E>(kind: "err", error: E): Result<Nothing, E>;
 
 /**
  * Creates `Err` with type of `Result<V, E>`
@@ -244,14 +260,30 @@ export function Result<V = Nothing, E = Nothing>(
  */
 export function Result<ValueOrError, Error>(
   kind: "ok" | "err",
-  valueOrError: ValueOrError | Error
+  valueOrError?: ValueOrError | Error
 ):
+  | Result<Nothing, Nothing>
   | Result<ValueOrError, Nothing>
   | Result<Nothing, ValueOrError>
   | Result<ValueOrError, Error> {
-  return kind === "ok" ?
-      (Ok(valueOrError) as Result<ValueOrError, Nothing>)
-    : (Err(valueOrError) as Result<Nothing, ValueOrError>);
+  switch (true) {
+    case kind === "err" && valueOrError !== undefined:
+      // Err<E> => Result<Nothing, E> or Result<V, E>
+      return Err(valueOrError as Error);
+
+    case kind === "err" && valueOrError === undefined:
+      // Err<Nothing> => Result<Nothing, Nothing>
+      return Err();
+
+    case kind === "ok" && valueOrError !== undefined:
+      // Ok<V> => Result<V, Nothing> or Result<V, E>
+      return Ok(valueOrError as ValueOrError);
+
+    default:
+    case kind === "ok" && valueOrError === undefined:
+      // Ok<Nothing> => Result<Nothing, Nothing>
+      return Ok();
+  }
 }
 
 /**
@@ -291,21 +323,3 @@ export function isErr<E>(result: Result<any, E>): result is Err<E> {
  * @see {@link isErr}
  */
 export const notOk = isErr;
-
-export function onOk<V>(
-  f: (ok: V) => any
-): Operator<Result<V, any>, Result<V, any>> {
-  return (result: Result<V, any>): Result<V, any> => {
-    if (isOk(result)) f(result.value);
-    return result;
-  };
-}
-
-export function onErr<E>(
-  f: (err: E) => any
-): Operator<Result<any, E>, Result<any, E>> {
-  return result => {
-    if (isErr(result)) f(result.error);
-    return result;
-  };
-}

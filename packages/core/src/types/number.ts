@@ -3,7 +3,7 @@
  * @template N number to be decremented
  * @returns {number} N - 1.
  */
-type Decrement<N extends number> =
+export type Decrement<N extends number> =
   // prettier-ignore
   [
     never, 0,

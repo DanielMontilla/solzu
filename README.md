@@ -1,11 +1,8 @@
 # Solzu
-A collection of useful typescript stuff. Got tired of copy pasting stuff between projects 😬
+A collection of **useful** typescript packages focused around ergonomic, readable and maintainable code. 
 
-## Features
-- rust inspired `Result` & `Option` types
-- `defineArgs` flexible recursive utility to generate orderless named function/method parameters.
-- general math stuff like `pickRandomElement` and object management utilities like `toRecord`
+## Usage
+%% TODO %%
 
-### TODO
-- [ ] refactor `options.ts` for better type narrowing during flow control
-- [ ] fine-grain `defineArgs` macro w/ required & options arguments
+## Motivation
+Was retyping the same stuff each project. Finally decided to unify in an official public packages. Also wanted to learn what writing and publishing stuff worked in the js/ts ecosystem

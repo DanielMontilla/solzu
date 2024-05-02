@@ -1,3 +1,7 @@
+### Obsidian ###
+# config dir
+.obsidian/
+
 # Logs
 logs
 *.log

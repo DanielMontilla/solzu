@@ -2,7 +2,7 @@
  * @internal
  * @description property key for custom object's unique symbol classifier
  */
-export const $CLASSIFIER = "@classifier" as const;
+export const $CLASSIFIER = "classifier" as const;
 
 /**
  * @internal

@@ -195,8 +195,7 @@ export const notSome = isNone;
 
 /**
  * Checks if provided `thing` is of type `Maybe`
- * @template V inner `some` type
- * @param {unknown} thing value to be checked
+ * @param {unknown} thing data to be checked
  * @returns {boolean} `true` if thing is `Maybe`. Otherwise `false`
  */
 export function isMaybe(thing: unknown): thing is Maybe.Any {

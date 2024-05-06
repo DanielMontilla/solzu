@@ -148,7 +148,7 @@ describe("Result [types]", () => {
   describe("Unfold", () => {
     it("should just return the origin result if not nested", () => {
       type Expected = Result<string, boolean>;
-      type Test = Result.Unfold<Expected>;
+      type Test = Result.InfiniteUnfold<Expected>;
 
       expectTypeOf<Test>().toMatchTypeOf<Expected>();
     });
@@ -161,7 +161,7 @@ describe("Result [types]", () => {
       type OutErr = boolean;
       type OutResult = Result<InResult, OutErr>;
 
-      type Test = Result.Unfold<OutResult>;
+      type Test = Result.InfiniteUnfold<OutResult>;
 
       expectTypeOf<Test>().toMatchTypeOf<Result<InOk, InErr | OutErr>>();
     });
@@ -200,7 +200,7 @@ describe("Result [types]", () => {
       type Err8 = "error 8";
       type Result8 = Result<Ok8, Err8>;
 
-      type Test = Result.Unfold<Result8>;
+      type Test = Result.InfiniteUnfold<Result8>;
 
       expectTypeOf<Test>().toMatchTypeOf<
         Result<Inner, Err1 | Err2 | Err3 | Err4 | Err5 | Err6 | Err7 | Err8>

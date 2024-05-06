@@ -1,6 +1,26 @@
-import { isOk, Result, Ok, Err, isErr } from ".";
+import { isOk, Result, Ok, Err, isErr, isResult } from ".";
 import { Operator } from "../types";
 import { isFunction } from "../utility";
+
+/**
+ * Alias for `Result.Flatten`
+ * @template R input `Result`
+ * @retuns flattened result (-1 depth)
+ * @see {@link Result.Flatten}
+ */
+export type Flatten<R extends Result.Any> = Result.Flatten<R>;
+
+/**
+ * Alias for `Result.Unfold`
+ * @template R input `Result`
+ * @template Limit maximun unfold depth. Default `typeof MAX_UNFOLD_DEPTH`
+ * @returns unfolded result upto `Limit`
+ * @see {@link Result.Unfold}
+ */
+export type Unfold<
+  R extends Result.Any,
+  Limit extends number = typeof MAX_UNFOLD_DEPTH,
+> = Result.Unfold<R, Limit>;
 
 /**
  * Converts procedure that could potentially throw into `Result`
@@ -141,6 +161,60 @@ export function or<V, E>(
     : fOrValue;
 }
 
+/**
+ * @internal
+ */
+export const MAX_UNFOLD_DEPTH = 512;
+
+/**
+ * Turns a nested Result into a result of depth 1. This is for the Ok channel only. Input result should never exceed a depth of `MAX_UNFOLD_DEPTH`.
+ * @template V inner Ok value type
+ * @template E inner Err error type
+ * @returns function that takes in nested result and returns unfolded result
+ * @see {@link MAX_UNFOLD_DEPTH}
+ */
+export function unfold<V, E>(): Operator<Result<V, E>, Unfold<Result<V, E>>> {
+  return result => {
+    if (isErr(result)) return result as Unfold<Result<V, E>>;
+
+    let inner = result.value;
+
+    for (let i = 0; i < MAX_UNFOLD_DEPTH; i++) {
+      if (!isResult(inner)) break;
+      if (isErr(inner)) return inner as Unfold<Result<V, E>>;
+      inner = inner.value;
+    }
+
+    return Ok(inner) as Unfold<Result<V, E>>;
+  };
+}
+
+/**
+ * Turns a nested Result into a result with 1 less depth. This unnesting occurs for the Ok channel.
+ * @template V inner Ok value type
+ * @template E inner Err error type
+ * @returns function that takes in nested result and returns flattened result
+ */
+export function flatten<V, E>(): Operator<Result<V, E>, Flatten<Result<V, E>>> {
+  return result => {
+    if (isErr(result) || !isResult(result.value) || isErr(result.value))
+      return result as Flatten<Result<V, E>>;
+
+    return result.value as Flatten<Result<V, E>>;
+  };
+}
+
+/**
+ * Transforms & unwraps input Result. Used when you'd like to generate an error based of the inner Ok value of result (if there is one)
+ * @template FromValue original Ok value type
+ * @template FromError origin Err error type
+ * @template ToValue mapped Ok value type
+ * @template ToError mapped Err value type
+ * @param mapper
+ * @returns function that takes origin Result and returns flattened result
+ * @see {@link map}
+ * @see {@link unfold}
+ */
 export function flatmap<FromValue, FromError, ToValue, ToError>(
   mapper: (ok: FromValue) => Result<ToValue, ToError>
 ): Operator<

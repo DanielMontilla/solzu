@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { Some, isSome, Maybe, None, isNone } from "..";
 import { flatten, MAX_FLATTEN_DEPTH } from "../scoped";
 
-describe("flatten", () => {
+describe("flatten [runtime]", () => {
   it("should return the original Some when provided with Some of depth 1", () => {
     const inner = 0xfafa;
     const some = Some(inner);

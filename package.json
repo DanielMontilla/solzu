@@ -1,5 +1,5 @@
 {
-  "name": "packages",
+  "name": "@solzu/mono",
   "version": "1.0.0",
   "scripts": {
     "core:test": "pnpm --filter solzu test",

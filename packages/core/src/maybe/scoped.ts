@@ -1,6 +1,12 @@
 import { Future, Maybe, None, Some, isMaybe, isNone, isSome } from ".";
 import { Operator } from "../types";
 
+/**
+ * Alias for `Maybe.Flatten`
+ * @template M input `Maybe`
+ * @retuns flattened maybe
+ * @see {@link Maybe.Flatten}
+ */
 export type Flatten<M extends Maybe.Any> = Maybe.Flatten<M>;
 
 /**
@@ -128,23 +134,23 @@ export const MAX_FLATTEN_DEPTH = 512;
 
 /**
  * Turns a nested maybe into a maybe of depth 1. Input maybe should never exceed a depth of `MAX_FLATTEN_DEPTH`.
- * @template M type of the input maybe
+ * @template V inner Some value type
  * @returns flattened maybe
  * @see {@link MAX_FLATTEN_DEPTH}
  */
-export function flatten<M>(): Operator<Maybe<M>, Flatten<Maybe<M>>> {
+export function flatten<V>(): Operator<Maybe<V>, Flatten<Maybe<V>>> {
   return maybe => {
-    if (isNone(maybe)) return maybe as Flatten<Maybe<M>>;
+    if (isNone(maybe)) return maybe as Flatten<Maybe<V>>;
 
     let inner = maybe.value;
 
     for (let i = 0; i < MAX_FLATTEN_DEPTH; i++) {
       if (!isMaybe(inner)) break;
-      if (isNone(inner)) return inner as Flatten<Maybe<M>>;
+      if (isNone(inner)) return inner as Flatten<Maybe<V>>;
       inner = inner.value;
     }
 
-    return Some(inner) as Flatten<Maybe<M>>;
+    return Some(inner) as Flatten<Maybe<V>>;
   };
 }
 

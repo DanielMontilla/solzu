@@ -1,5 +1,6 @@
 import { Decrement, Nothing } from "..";
 import { $CLASSIFIER, $SPECIFIER } from "../data";
+import { MAX_UNFOLD_DEPTH } from "./scoped";
 
 /**
  * Unique classifier for `Ok` type
@@ -84,16 +85,16 @@ export namespace Result {
     : never;
 
   /**
-   * Recursively flattens nested `Result` type **infinitely**. Not recommended for general use. Try simpler versions like `Flatten` or `BoundedUnfold`
+   * Recursively flattens nested `Result` type **infinitely**. Not recommended for general use. Try simpler versions like `Flatten` or `Unfold`
    * @template Root `Result` type to unfold
    * @returns `Result` of depth 1. All `Err`'s are combined onto single union `Err`
    * @see {@link Result.Flatten}
-   * @see {@link Result.BoundedUnfold}
+   * @see {@link Result.Unfold}
    */
-  export type Unfold<Root extends Any> =
+  export type InfiniteUnfold<Root extends Any> =
     [Root] extends [Result<infer RootOk, infer RootErr>] ?
       [RootOk] extends [Result<infer NestedOk, infer NestedErr>] ?
-        Unfold<Result<NestedOk, NestedErr | RootErr>>
+        InfiniteUnfold<Result<NestedOk, NestedErr | RootErr>>
       : Root
     : never;
 
@@ -101,14 +102,17 @@ export namespace Result {
    * Recursively flattens nested `Result` type up to `Limit`. For an **infinite** version checkout `Result.Unfold` or simpler `Result.Flatten`
    * @template Root `Result` type to unfold
    * @returns `Result` of depth 1 if depth ≤ `Limit`. Otherwise the unfolded result up to `Limit`
-   * @see {@link Result.Unfold}
+   * @see {@link Result.InfiniteUnfold}
    * @see {@link Result.Flatten}
    */
-  export type BoundedUnfold<Root extends Any, Limit extends number> =
+  export type Unfold<
+    Root extends Any,
+    Limit extends number = typeof MAX_UNFOLD_DEPTH,
+  > =
     Limit extends 0 ? Root
     : [Root] extends [Result<infer RootOk, infer RootErr>] ?
       [RootOk] extends [Result<infer NestedOk, infer NestedErr>] ?
-        BoundedUnfold<Result<NestedOk, NestedErr | RootErr>, Decrement<Limit>>
+        Unfold<Result<NestedOk, NestedErr | RootErr>, Decrement<Limit>>
       : Root
     : never;
 }
@@ -123,7 +127,7 @@ export type Task<V = Nothing, E = Nothing> = Promise<Result<V, E>>;
 
 /**
  * Alias for `Result.OkOf`
- * @template M any `Result`
+ * @template R any `Result`
  * @returns inner `Ok` type
  * @see {@link Result.OkOf}
  */
@@ -131,7 +135,7 @@ export type OkOf<R extends Result.Any> = Result.OkOf<R>;
 
 /**
  * Alias for `Result.ErrOf`
- * @template M any `Result`
+ * @template R any `Result`
  * @returns inner `Err` type
  * @see {@link Result.ErrOf}
  */
@@ -323,3 +327,20 @@ export function isErr<E>(result: Result<any, E>): result is Err<E> {
  * @see {@link isErr}
  */
 export const notOk = isErr;
+
+/**
+ * Checks if provided `thing` is of type `Result`
+ * @param {unknown} thing data to be checked
+ * @returns {boolean} `true` if thing is `Maybe`. Otherwise `false`
+ */
+export function isResult(thing: unknown): thing is Result.Any {
+  return (
+    typeof thing == "object" &&
+    thing !== null &&
+    $CLASSIFIER in thing &&
+    (thing[$CLASSIFIER] === OK_CLASSIFIER ||
+      thing[$CLASSIFIER] === ERR_CLASSIFIER) &&
+    $SPECIFIER in thing &&
+    (thing[$SPECIFIER] === OK_SPECIFIER || thing[$SPECIFIER] === ERR_SPECIFIER)
+  );
+}

@@ -1,8 +1,12 @@
 # Solzu
-A collection of **useful** typescript packages focused around ergonomic, readable and maintainable code. 
+Solzu (`/solˈzu/`) is a collection of powerful typescript utilities to write ergonomic and maintainable code.
 
-## Usage
-%% TODO %%
+> This library is still in the very early stages of development. If you're looking for a more battle tested solution please checkout [`Effect`](https://github.com/Effect-TS/effect) or [`fp-ts`](https://github.com/gcanti/fp-ts)
+## Features
 
-## Motivation
-Was retyping the same stuff each project. Finally decided to unify in an official public packages. Also wanted to learn what writing and publishing stuff worked in the js/ts ecosystem
+### `Maybe<V>`
+
+### `Result<V, E>`
+
+### `Job`
+

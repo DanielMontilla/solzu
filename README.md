@@ -14,8 +14,15 @@ npm i solzu
 pnpm add solzu
 ```
 ## Features
-### `Maybe<V>`
+### Primitives
+The building blocks of Solzu. Comprised of custom data structures and their accompanied by powerful functions.
+#### `Maybe<V>`
 
-### `Result<V, E>`
+%% TODO %%
+#### `Result<V, E>`
 
-### `Job`
+%% TODO %%
+#### `Job`
+
+%% TODO %%
+

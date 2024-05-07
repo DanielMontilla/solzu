@@ -39,14 +39,14 @@
       "types": "./dist/index.d.ts"
     },
     "./@result": {
-      "import": "./dist/result/scoped.js",
-      "require": "./dist/result/scoped.cjs",
-      "types": "./dist/result/scoped.d.ts"
+      "import": "./dist/primitives/result/scoped.js",
+      "require": "./dist/primitives/result/scoped.cjs",
+      "types": "./dist/primitives/result/scoped.d.ts"
     },
     "./@maybe": {
-      "import": "./dist/maybe/scoped.js",
-      "require": "./dist/maybe/scoped.cjs",
-      "types": "./dist/maybe/scoped.d.ts"
+      "import": "./dist/primitives/maybe/scoped.js",
+      "require": "./dist/primitives/maybe/scoped.cjs",
+      "types": "./dist/primitives/maybe/scoped.d.ts"
     }
   },
   "files": [

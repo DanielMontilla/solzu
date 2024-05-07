@@ -1,5 +1,5 @@
 import { resolve } from "path";
-import { defineConfig, defaultExclude } from "vitest/config";
+import { defineConfig } from "vitest/config";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
@@ -7,8 +7,14 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, "src/index.ts"),
-        "result/scoped": resolve(__dirname, "src/primitives/result/scoped.ts"),
-        "maybe/scoped": resolve(__dirname, "src/primitives/maybe/scoped.ts"),
+        "primitives/result/scoped": resolve(
+          __dirname,
+          "src/primitives/result/scoped.ts"
+        ),
+        "primitives/maybe/scoped": resolve(
+          __dirname,
+          "src/primitives/maybe/scoped.ts"
+        ),
       },
       name: "solzu",
       formats: ["es", "cjs"],

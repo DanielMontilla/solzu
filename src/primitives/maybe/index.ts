@@ -1,5 +1,7 @@
 import { Nothing } from "..";
-import { $CLASSIFIER, $SPECIFIER } from "../data";
+import { $CLASSIFIER, $SPECIFIER } from "../../data";
+import { Decrement } from "../../types";
+import { MAX_UNFOLD_DEPTH } from "./scoped";
 
 /**
  * Unique classifier for `Some` type
@@ -56,21 +58,55 @@ export namespace Maybe {
   export type Any = Maybe<any>;
 
   /**
-   * Extracts the inner `Some` type
-   * @template M any `Maybe`
-   * @returns inner `Some` type
+   * Extracts the inner `Some` value type
+   * @template M input `Maybe` type
+   * @returns inner `Some` value type
    */
   export type SomeOf<M extends Any> = M extends Some<infer V> ? V : never;
 
   /**
-   * Flattens nested maybes of any depth
-   * @returns {Maybe<V>} `Maybe` of depth 1
+   * Unwraps nested `Maybe` type once
+   * @template Root input `Maybe` type to flatten
+   * @returns `Maybe` flattened once
    */
-  export type Flatten<M extends Any> =
-    M extends Maybe<infer V> ?
-      V extends Any ?
-        Flatten<V>
-      : M
+  export type Flatten<Root extends Any> =
+    [Root] extends [Maybe<infer RootSome>] ?
+      [RootSome] extends [Maybe<infer NestedSome>] ?
+        Maybe<NestedSome>
+      : Root
+    : never;
+
+  /**
+   * Recursively unwraps nested `Maybe` type **infinitely**. Not recommended for general use. Use simpler versions like `Flatten` or `Unfold`
+   * @template Root `Maybe` type to unfold
+   * @returns `Maybe` of depth 1
+   * @see {@link Maybe.Flatten}
+   * @see {@link Maybe.Unfold}
+   */
+  export type InfiniteUnfold<Root extends Any> =
+    [Root] extends [Maybe<infer RootSome>] ?
+      [RootSome] extends [Maybe<infer NestedSome>] ?
+        InfiniteUnfold<Maybe<NestedSome>>
+      : Root
+    : never;
+
+  /**
+   * Recursively unwraps nested `Maybe` type up to `Limit`. For an **infinite** version checkout `Maybe.InfiniteUnfold` or simpler `Result.Flatten`
+   * @template Root `Maybe` type to unfold
+   * @template Limit maximun depth for unesting. Default `512`
+   * @returns `Maybe` of depth 1 if depth ≤ `Limit`. Otherwise the unfolded result up to `Limit`
+   * @see {@link Result.InfiniteUnfold}
+   * @see {@link Result.Flatten}
+   */
+  export type Unfold<
+    Root extends Any,
+    Limit extends number = typeof MAX_UNFOLD_DEPTH,
+  > =
+    Limit extends 0 ? Root
+    : [Root] extends [Maybe<infer RootSome>] ?
+      [RootSome] extends [Any] ?
+        Unfold<RootSome, Decrement<Limit>>
+      : Root
     : never;
 }
 
@@ -83,8 +119,8 @@ export type Future<V> = Promise<Maybe<V>>;
 
 /**
  * Alias for `Maybe.SomeOf`
- * @template M any `Maybe`
- * @returns inner `Some` type
+ * @template M input `Maybe` type
+ * @returns inner `Some` value type
  * @see {@link Maybe.SomeOf}
  */
 export type SomeOf<M extends Maybe.Any> = Maybe.SomeOf<M>;

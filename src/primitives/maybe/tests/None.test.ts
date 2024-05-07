@@ -1,6 +1,6 @@
 import { describe, it, expectTypeOf, expect } from "vitest";
 import { None, NONE_CLASSIFIER, NONE_SPECIFIER } from "..";
-import { $SPECIFIER, $CLASSIFIER } from "../../data";
+import { $SPECIFIER, $CLASSIFIER } from "../../../data";
 
 describe("None [runtime]", () => {
   it("should return None", () => {

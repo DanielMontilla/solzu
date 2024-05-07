@@ -1,0 +1,8 @@
+/**
+ * Checks if the value is a number and not NaN.
+ * @param {unknown} x The value to check.
+ * @returns `true` if x is a number and not NaN, `false` otherwise.
+ */
+export function isNumber(x: unknown): x is number {
+  return typeof x === "number" && !Number.isNaN(x);
+}

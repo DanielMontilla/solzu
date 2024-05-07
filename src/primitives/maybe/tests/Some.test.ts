@@ -1,6 +1,6 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
 import { Some, SOME_SPECIFIER, SOME_CLASSIFIER } from "..";
-import { $SPECIFIER, $CLASSIFIER } from "../../data";
+import { $SPECIFIER, $CLASSIFIER } from "../../../data";
 import { Nothing } from "../../nothing";
 
 describe("Some [runtime]", () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Nothing, isNothing } from "..";
-import { $SPECIFIER, $CLASSIFIER } from "../../data";
+import { $SPECIFIER, $CLASSIFIER } from "../../../data";
 
 describe("isNothing", () => {
   it("should return true for Nothing instance", () => {

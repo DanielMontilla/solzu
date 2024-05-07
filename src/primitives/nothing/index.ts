@@ -1,4 +1,4 @@
-import { $CLASSIFIER, $SPECIFIER } from "../data";
+import { $CLASSIFIER, $SPECIFIER } from "../../data";
 
 /**
  * Unique classifier for `Nothing` type

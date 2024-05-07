@@ -7,6 +7,7 @@ const config = {
   bracketSameLine: false,
   arrowParens: "avoid",
   experimentalTernaries: true,
+  useTabs: false,
 
   printWidth: 80,
 };

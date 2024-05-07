@@ -1,6 +1,6 @@
 import { isOk, Result, Ok, Err, isErr, isResult } from ".";
-import { Operator } from "../types";
-import { isFunction } from "../utility";
+import { isFunction } from "../..";
+import { Operator } from "../../types";
 
 /**
  * Alias for `Result.Flatten`
@@ -190,7 +190,7 @@ export function unfold<V, E>(): Operator<Result<V, E>, Unfold<Result<V, E>>> {
 }
 
 /**
- * Turns a nested Result into a result with 1 less depth. This unnesting occurs for the Ok channel.
+ * Turns a nested `Result` into a result with 1 less depth. This unnesting occurs for the Ok channel.
  * @template V inner Ok value type
  * @template E inner Err error type
  * @returns function that takes in nested result and returns flattened result
@@ -224,5 +224,16 @@ export function flatmap<FromValue, FromError, ToValue, ToError>(
   return result =>
     isOk(result) ?
       (mapper(result.value) as Result<ToValue, FromError | FromValue>)
+    : result;
+}
+
+export function check<V, E, FailError>(
+  predicate: (ok: V) => boolean,
+  failError: FailError
+): Operator<Result<V, E>, Result<V, E | FailError>> {
+  return result =>
+    isOk(result) ?
+      predicate(result.value) ? result
+      : Err(failError)
     : result;
 }

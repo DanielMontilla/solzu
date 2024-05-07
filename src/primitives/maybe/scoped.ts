@@ -1,5 +1,5 @@
 import { Future, Maybe, None, Some, isMaybe, isNone, isSome } from ".";
-import { Operator } from "../types";
+import { Operator } from "../../types";
 
 /**
  * Alias for `Maybe.Flatten`
@@ -8,6 +8,18 @@ import { Operator } from "../types";
  * @see {@link Maybe.Flatten}
  */
 export type Flatten<M extends Maybe.Any> = Maybe.Flatten<M>;
+
+/**
+ * Alias for `Maybe.Unfold`
+ * @template R input `Result`
+ * @template Limit maximun unfold depth. Default `typeof MAX_UNFOLD_DEPTH`
+ * @returns unfolded result up to `Limit`
+ * @see {@link Result.Unfold}
+ */
+export type Unfold<
+  M extends Maybe.Any,
+  Limit extends number = typeof MAX_UNFOLD_DEPTH,
+> = Maybe.Unfold<M, Limit>;
 
 /**
  * Converts nullish value into `Maybe`
@@ -130,27 +142,41 @@ export function or<V, Other = V>(value: Other): Operator<Maybe<V>, V | Other> {
 /**
  * @internal
  */
-export const MAX_FLATTEN_DEPTH = 512;
+export const MAX_UNFOLD_DEPTH = 512;
 
 /**
- * Turns a nested maybe into a maybe of depth 1. Input maybe should never exceed a depth of `MAX_FLATTEN_DEPTH`.
+ * Turns a nested maybe into a maybe of depth 1. Input maybe should never exceed a depth of `MAX_UNFOLD_DEPTH`.
  * @template V inner Some value type
  * @returns flattened maybe
- * @see {@link MAX_FLATTEN_DEPTH}
+ * @see {@link MAX_UNFOLD_DEPTH}
  */
-export function flatten<V>(): Operator<Maybe<V>, Flatten<Maybe<V>>> {
+export function unfold<V>(): Operator<Maybe<V>, Unfold<Maybe<V>>> {
   return maybe => {
-    if (isNone(maybe)) return maybe as Flatten<Maybe<V>>;
+    if (isNone(maybe)) return maybe as Unfold<Maybe<V>>;
 
     let inner = maybe.value;
 
-    for (let i = 0; i < MAX_FLATTEN_DEPTH; i++) {
+    for (let i = 0; i < MAX_UNFOLD_DEPTH; i++) {
       if (!isMaybe(inner)) break;
-      if (isNone(inner)) return inner as Flatten<Maybe<V>>;
+      if (isNone(inner)) return inner as Unfold<Maybe<V>>;
       inner = inner.value;
     }
 
-    return Some(inner) as Flatten<Maybe<V>>;
+    return Some(inner) as Unfold<Maybe<V>>;
+  };
+}
+
+/**
+ * Turns a nested `Maybe` into a maybe with 1 less depth.
+ * @template V inner `Some` value type
+ * @returns function with nested maybe input and returns flattened maybe
+ */
+export function flatten<V>(): Operator<Maybe<V>, Flatten<Maybe<V>>> {
+  return maybe => {
+    if (isNone(maybe) || !isMaybe(maybe.value) || isNone(maybe.value))
+      return maybe as Flatten<Maybe<V>>;
+
+    return maybe.value as Flatten<Maybe<V>>;
   };
 }
 

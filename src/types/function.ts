@@ -24,3 +24,8 @@ export type Procedure<Output> = () => Output;
  * Function that takes no arguments and always returns `void` (nothing)
  */
 export type Callback = () => void;
+
+/**
+ * Function that takes input, and returns boolean based on arbitrary condition
+ */
+export type Predicate<Input> = (input: Input) => boolean;

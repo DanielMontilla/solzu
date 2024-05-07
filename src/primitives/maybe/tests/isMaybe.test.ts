@@ -1,50 +1,50 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
-import { $SPECIFIER, $CLASSIFIER } from "../../data";
-import { Err, isResult, Ok, Result } from "..";
+import { Some, isMaybe, None, Maybe } from "..";
+import { $SPECIFIER, $CLASSIFIER } from "../../../data";
 
-describe("isResult [runtime]", () => {
-  it("should return true when Ok value is passed in", () => {
-    const ok = Ok();
-    const value = isResult(ok);
+describe("isMaybe [runtime]", () => {
+  it("should return true when Some value is passed in", () => {
+    const some = Some();
+    const value = isMaybe(some);
 
     expect(value).toBe(true);
   });
 
-  it("should return true when Err value is passed in", () => {
-    const err = Err();
-    const value = isResult(err);
+  it("should return true when None value is passed in", () => {
+    const none = None();
+    const value = isMaybe(none);
 
     expect(value).toBe(true);
   });
 
   it("should return false for an arbitrary object", () => {
-    const result = { prop1: "hi", prop2: 10, prop3: true };
-    const value = isResult(result);
+    const maybe = { prop1: "hi", prop2: 10, prop3: true };
+    const value = isMaybe(maybe);
 
     expect(value).toBe(false);
   });
 
   it("should return false for an object mimicking Maybe without correct symbols", () => {
     const maybe = {
-      [$SPECIFIER]: "ok",
+      [$SPECIFIER]: "some",
       [$CLASSIFIER]: Symbol("solzu:core@some"),
       value: 10,
     };
-    const value = isResult(maybe);
+    const value = isMaybe(maybe);
 
     expect(value).toBe(false);
   });
 
   it("should return false for null", () => {
-    const result = null;
-    const value = isResult(result);
+    const maybe = null;
+    const value = isMaybe(maybe);
 
     expect(value).toBe(false);
   });
 
   it("should return false for undefined", () => {
     const maybe = undefined;
-    const value = isResult(maybe);
+    const value = isMaybe(maybe);
 
     expect(value).toBe(false);
   });
@@ -54,11 +54,11 @@ describe("isMaybe [types]", () => {
   it("should narrow type via control flow inference", () => {
     const value: any = null;
 
-    if (isResult(value)) {
-      expectTypeOf<typeof value>().toMatchTypeOf<Result.Any>();
+    if (isMaybe(value)) {
+      expectTypeOf<typeof value>().toMatchTypeOf<Maybe.Any>();
     }
 
-    if (!isResult(value)) {
+    if (!isMaybe(value)) {
       expectTypeOf<typeof value>().toMatchTypeOf<any>();
     }
   });

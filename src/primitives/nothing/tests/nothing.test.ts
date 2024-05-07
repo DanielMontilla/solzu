@@ -1,6 +1,6 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
 import { Nothing, NOTHING_SPECIFIER, NOTHING_CLASSIFIER } from "..";
-import { $SPECIFIER, $CLASSIFIER } from "../../data";
+import { $SPECIFIER, $CLASSIFIER } from "../../../data";
 
 describe("Nothing [runtime]", () => {
   it("should match its runtime specifier w/ explicit specifier", () => {

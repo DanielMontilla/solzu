@@ -118,11 +118,15 @@ describe("Maybe [types]", () => {
   });
 
   describe("Flatten", () => {
+    it("should infer the original maybe if not nested", () => {});
+  });
+
+  describe("Unfold", () => {
     it("should infer the inner nested type @ depth 1", () => {
       type Inner = number;
       type Expected = Maybe<Inner>;
       type M1 = Maybe<Expected>;
-      type Test = Maybe.Flatten<M1>;
+      type Test = Maybe.Unfold<M1>;
 
       expectTypeOf<Test>().toMatchTypeOf<Expected>();
     });
@@ -132,7 +136,7 @@ describe("Maybe [types]", () => {
       type Expected = Maybe<Inner>;
       type M1 = Maybe<Expected>;
       type M2 = Maybe<M1>;
-      type Test = Maybe.Flatten<M2>;
+      type Test = Maybe.Unfold<M2>;
 
       expectTypeOf<Test>().toMatchTypeOf<Expected>();
     });
@@ -149,35 +153,92 @@ describe("Maybe [types]", () => {
       type M7 = Maybe<M6>;
       type M8 = Maybe<M7>;
 
-      type Test = Maybe.Flatten<M8>;
+      type Test = Maybe.Unfold<M8>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should be some on some type", () => {
+      type Inner = string;
+      type Value = Some<Inner>;
+      type Test = Maybe.Unfold<Value>;
+      type Expected = Value;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should be some on nested maybe type @ depth 1", () => {
+      type Inner = boolean;
+      type Value = Some<Inner>;
+      type M1 = Maybe<Value>;
+      type Test = Maybe.Unfold<M1>;
+      type Expected = Some<Inner>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should be some on nested some type @ depth 1", () => {
+      type Inner = boolean;
+      type Value = Some<Inner>;
+      type M1 = Some<Value>;
+      type Test = Maybe.Unfold<M1>;
+      type Expected = Some<Inner>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should be some on nested maybe type @ depth 2", () => {
+      type Inner = Object;
+      type Value = Some<Inner>;
+      type M1 = Maybe<Value>;
+      type M2 = Maybe<M1>;
+      type Test = Maybe.Unfold<M2>;
+      type Expected = Value;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should be some on nested so type @ depth 2", () => {
+      type Inner = Object;
+      type Value = Some<Inner>;
+      type M1 = Some<Value>;
+      type M2 = Some<M1>;
+      type Test = Maybe.Unfold<M2>;
+      type Expected = Value;
 
       expectTypeOf<Test>().toMatchTypeOf<Expected>();
     });
 
     it("should be none on none type", () => {
       type Value = None;
-      type Test = Maybe.Flatten<Value>;
+      type Test = Maybe.Unfold<Value>;
+      type Expected = Value;
 
-      expectTypeOf<Test>().toMatchTypeOf<None>();
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
     });
 
-    it("should be none on nested none type @ depth 1", () => {
-      type M1 = Maybe<None>;
-      type Test = Maybe.Flatten<M1>;
+    it("should be none on nested maybe type @ depth 1", () => {
+      type Value = None;
+      type M1 = Maybe<Value>;
+      type Test = Maybe.Unfold<M1>;
+      type Expected = Value;
 
-      expectTypeOf<Test>().toMatchTypeOf<None>();
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
     });
 
-    it("should be none on nested none type @ depth 2", () => {
-      type M1 = Maybe<None>;
+    it("should be none on nested maybe type @ depth 2", () => {
+      type Value = None;
+      type M1 = Maybe<Value>;
       type M2 = Maybe<M1>;
-      type Test = Maybe.Flatten<M2>;
+      type Test = Maybe.Unfold<M2>;
+      type Expected = Value;
 
-      expectTypeOf<Test>().toMatchTypeOf<None>();
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
     });
 
-    it("should be none on nested none type @ depth 8", () => {
-      type M1 = Maybe<None>;
+    it("should be none on nested maybe type @ depth 8", () => {
+      type Value = None;
+      type M1 = Maybe<Value>;
       type M2 = Maybe<M1>;
       type M3 = Maybe<M2>;
       type M4 = Maybe<M3>;
@@ -185,9 +246,26 @@ describe("Maybe [types]", () => {
       type M6 = Maybe<M5>;
       type M7 = Maybe<M6>;
       type M8 = Maybe<M7>;
-      type Test = Maybe.Flatten<M8>;
+      type Test = Maybe.Unfold<M8>;
+      type Expected = Value;
 
-      expectTypeOf<Test>().toMatchTypeOf<None>();
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    });
+
+    it("should be none on nested some type @ depth 8", () => {
+      type Value = None;
+      type M1 = Some<Value>;
+      type M2 = Some<M1>;
+      type M3 = Some<M2>;
+      type M4 = Some<M3>;
+      type M5 = Some<M4>;
+      type M6 = Some<M5>;
+      type M7 = Some<M6>;
+      type M8 = Some<M7>;
+      type Test = Maybe.Unfold<M8>;
+      type Expected = Value;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
     });
   });
 });

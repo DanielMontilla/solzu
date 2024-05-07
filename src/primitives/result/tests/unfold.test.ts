@@ -13,7 +13,7 @@ describe("unfold [runtime]", () => {
     expect(value).toHaveProperty("value", inner);
   });
 
-  it("should return the unfolded result when provided with Ok of depth n <= MAX_FLATTEN_DEPTH", () => {
+  it("should return the unfolded result when provided with Ok of depth n <= MAX_UNFOLD_DEPTH", () => {
     const inner = "inner";
     const run = (n: number) => {
       let ok: Result<any> = Ok(inner);

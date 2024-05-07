@@ -1,5 +1,5 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
-import { $SPECIFIER, $CLASSIFIER } from "../../data";
+import { $SPECIFIER, $CLASSIFIER } from "../../../data";
 import { Nothing } from "../../nothing";
 import { ERR_SPECIFIER, ERR_CLASSIFIER, Err } from "..";
 

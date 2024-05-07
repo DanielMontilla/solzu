@@ -1,5 +1,6 @@
-import { Decrement, Nothing } from "..";
-import { $CLASSIFIER, $SPECIFIER } from "../data";
+import { Nothing } from "..";
+import { $CLASSIFIER, $SPECIFIER } from "../../data";
+import { Decrement } from "../../types";
 import { MAX_UNFOLD_DEPTH } from "./scoped";
 
 /**
@@ -59,9 +60,9 @@ export namespace Result {
   export type Any = Result<any, any>;
 
   /**
-   * Extracts the inner `Ok` type
-   * @template R any `Result`
-   * @returns inner `Ok` type
+   * Extracts the inner `Ok` value type
+   * @template R input `Result` type
+   * @returns inner `Ok` value type
    */
   export type OkOf<R extends Any> = R extends Ok<infer V> ? V : never;
 
@@ -73,8 +74,8 @@ export namespace Result {
   export type ErrOf<R extends Any> = R extends Err<infer E> ? E : never;
 
   /**
-   * Flattens nested `Result` type once
-   * @template Root root `Result` type to flatten
+   * Unwraps nested `Result` type once
+   * @template Root input `Result` type to flatten
    * @returns `Result` flattened once. Root and nested `Err`s are combined (union) for resulting `Err` type
    */
   export type Flatten<Root extends Any> =
@@ -85,7 +86,7 @@ export namespace Result {
     : never;
 
   /**
-   * Recursively flattens nested `Result` type **infinitely**. Not recommended for general use. Try simpler versions like `Flatten` or `Unfold`
+   * Recursively unwraps nested `Result` type **infinitely**. Not recommended for general use. Try simpler versions like `Flatten` or `Unfold`
    * @template Root `Result` type to unfold
    * @returns `Result` of depth 1. All `Err`'s are combined onto single union `Err`
    * @see {@link Result.Flatten}
@@ -99,7 +100,7 @@ export namespace Result {
     : never;
 
   /**
-   * Recursively flattens nested `Result` type up to `Limit`. For an **infinite** version checkout `Result.Unfold` or simpler `Result.Flatten`
+   * Recursively flattens nested `Result` type up to `Limit`. For an **infinite** version checkout `Result.InfiniteUnfold` or simpler `Result.Flatten`
    * @template Root `Result` type to unfold
    * @returns `Result` of depth 1 if depth ≤ `Limit`. Otherwise the unfolded result up to `Limit`
    * @see {@link Result.InfiniteUnfold}
@@ -119,24 +120,24 @@ export namespace Result {
 
 /**
  * Shorthand for `Promise` of a `Result`
- * @template V inner `Ok` type. Defaults to `Nothing`
- * @template E inner `Err` type. Defaults to `Nothing`
+ * @template V inner `Ok` value type. Defaults to `Nothing`
+ * @template E inner `Err` error type. Defaults to `Nothing`
  * @returns {Promise<Result<V, E>>}
  */
 export type Task<V = Nothing, E = Nothing> = Promise<Result<V, E>>;
 
 /**
  * Alias for `Result.OkOf`
- * @template R any `Result`
- * @returns inner `Ok` type
+ * @template R input `Result` type
+ * @returns inner `Ok` value type
  * @see {@link Result.OkOf}
  */
 export type OkOf<R extends Result.Any> = Result.OkOf<R>;
 
 /**
  * Alias for `Result.ErrOf`
- * @template R any `Result`
- * @returns inner `Err` type
+ * @template R input `Result` type
+ * @returns inner `Err` error type
  * @see {@link Result.ErrOf}
  */
 export type ErrOf<R extends Result.Any> = Result.ErrOf<R>;
@@ -288,6 +289,26 @@ export function Result<ValueOrError, Error>(
       // Ok<Nothing> => Result<Nothing, Nothing>
       return Ok();
   }
+}
+
+/**
+ * Create `Ok` of type `Result<V, never>`
+ * @template V inner `Ok` value type
+ * @param value inner `Ok` value
+ * @returns {Result<V, never>} result
+ */
+export function OkOf<V>(value: V): Result<V, never> {
+  return Ok(value);
+}
+
+/**
+ * Create `Err` of type `Result<never, E>`
+ * @template E inner `Err` error type
+ * @param value inner `Err` error
+ * @returns {Result<never, E>} result
+ */
+export function ErrOf<E>(error: E): Result<never, E> {
+  return Err(error);
 }
 
 /**

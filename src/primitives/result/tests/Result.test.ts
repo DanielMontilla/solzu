@@ -122,6 +122,7 @@ describe("Result [types]", () => {
       expectTypeOf<Test>().toMatchTypeOf<ErrValue>();
     });
   });
+  
   describe("Flatten", () => {
     it("should return the original result if not nested", () => {
       type Expected = Result<boolean, string>;
@@ -201,10 +202,12 @@ describe("Result [types]", () => {
       type Result8 = Result<Ok8, Err8>;
 
       type Test = Result.InfiniteUnfold<Result8>;
+      type Expected = Result<
+        Inner,
+        Err1 | Err2 | Err3 | Err4 | Err5 | Err6 | Err7 | Err8
+      >;
 
-      expectTypeOf<Test>().toMatchTypeOf<
-        Result<Inner, Err1 | Err2 | Err3 | Err4 | Err5 | Err6 | Err7 | Err8>
-      >();
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
     });
   });
 });

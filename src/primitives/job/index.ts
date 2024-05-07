@@ -1,4 +1,4 @@
-import { Procedure, Operator } from "../types";
+import { Procedure, Operator } from "../../types";
 
 /**
  * @description takes `input` through a sequence of transformations

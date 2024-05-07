@@ -51,7 +51,7 @@ export type None = {
  */
 export type Maybe<V> = Some<V> | None;
 
-export namespace Maybe {
+export module Maybe {
   /**
    * Generic `Maybe` type. Extends `any` other maybe
    */

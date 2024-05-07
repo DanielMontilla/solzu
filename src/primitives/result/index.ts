@@ -53,7 +53,7 @@ export type Err<E> = {
  */
 export type Result<V = Nothing, E = Nothing> = Ok<V> | Err<E>;
 
-export namespace Result {
+export module Result {
   /**
    * Generic `Result` type. Extends `any` other result
    */

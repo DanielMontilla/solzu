@@ -7,8 +7,8 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, "src/index.ts"),
-        "result/scoped": resolve(__dirname, "src/result/scoped.ts"),
-        "maybe/scoped": resolve(__dirname, "src/maybe/scoped.ts"),
+        "result/scoped": resolve(__dirname, "src/primitives/result/scoped.ts"),
+        "maybe/scoped": resolve(__dirname, "src/primitives/maybe/scoped.ts"),
       },
       name: "solzu",
       formats: ["es", "cjs"],

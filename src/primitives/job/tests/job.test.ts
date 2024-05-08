@@ -3,12 +3,21 @@ import { job } from "..";
 
 describe("job [runtime]", () => {
   it("should pass", () => {
-    const value = "hello";
-    const op = (v: string) => `${v} world`;
-    const final = op(value);
+    const initial = "hello";
+    const operator = (v: string) => `${v} world`;
+    const final = operator(initial);
 
-    const test = job(value, op);
+    const value = job(initial, operator);
 
-    expect(test).toBe(final);
+    expect(value).toBe(final);
+  });
+
+  it("should return original when only input value is passed", () => {
+    const initial = 10;
+    const final = initial;
+
+    const value = job(initial);
+
+    expect(value).toBe(final);
   });
 });

@@ -1,9 +1,18 @@
+import { isFunction } from "../../modules";
 import { Procedure, Operator } from "../../types";
 
 /**
- * @description takes `input` through a sequence of transformations
- * @template Input type of passed value
- * @template Output type of expected output
+ * takes `input` through a sequence of transformations
+ * @template Input type of input value
+ * @param {Input | Procedure<Input>} input starting value
+ * @returns {Input} original input
+ */
+export function job<Input>(input: Input | Procedure<Input>): Input;
+
+/**
+ * takes `input` through a sequence of transformations
+ * @template Input type of input value
+ * @template Output type of expected output value
  * @param {Input | Procedure<Input>} input starting value
  * @returns {Output} output. End value
  */
@@ -75,8 +84,69 @@ export function job<Input, A, B, C, D, E, F, G, Output>(
   operator: Operator<G, Output>
 ): Output;
 
+export function job<Input, A, B, C, D, E, F, G, H, Output>(
+  input: Input | Procedure<Input>,
+  operatorA: Operator<Input, A>,
+  operatorB: Operator<A, B>,
+  operatorC: Operator<B, C>,
+  operatorD: Operator<C, D>,
+  operatorE: Operator<D, E>,
+  operatorF: Operator<E, F>,
+  operatorG: Operator<F, G>,
+  operatorH: Operator<G, H>,
+  operator: Operator<H, Output>
+): Output;
+
+export function job<Input, A, B, C, D, E, F, G, H, I, Output>(
+  input: Input | Procedure<Input>,
+  operatorA: Operator<Input, A>,
+  operatorB: Operator<A, B>,
+  operatorC: Operator<B, C>,
+  operatorD: Operator<C, D>,
+  operatorE: Operator<D, E>,
+  operatorF: Operator<E, F>,
+  operatorG: Operator<F, G>,
+  operatorH: Operator<G, H>,
+  operatorI: Operator<H, I>,
+  operator: Operator<I, Output>
+): Output;
+
+export function job<Input, A, B, C, D, E, F, G, H, I, J, Output>(
+  input: Input | Procedure<Input>,
+  operatorA: Operator<Input, A>,
+  operatorB: Operator<A, B>,
+  operatorC: Operator<B, C>,
+  operatorD: Operator<C, D>,
+  operatorE: Operator<D, E>,
+  operatorF: Operator<E, F>,
+  operatorG: Operator<F, G>,
+  operatorH: Operator<G, H>,
+  operatorI: Operator<H, I>,
+  operatorJ: Operator<I, J>,
+  operator: Operator<J, Output>
+): Output;
+
+export function job<Input, A, B, C, D, E, F, G, H, I, J, K, Output>(
+  input: Input | Procedure<Input>,
+  operatorA: Operator<Input, A>,
+  operatorB: Operator<A, B>,
+  operatorC: Operator<B, C>,
+  operatorD: Operator<C, D>,
+  operatorE: Operator<D, E>,
+  operatorF: Operator<E, F>,
+  operatorG: Operator<F, G>,
+  operatorH: Operator<G, H>,
+  operatorI: Operator<H, I>,
+  operatorJ: Operator<I, J>,
+  operatorK: Operator<J, K>,
+  operator: Operator<K, Output>
+): Output;
+
+/**
+ * @internal
+ * */
 export function job(input: any, ...operators: Function[]): any {
-  let result = typeof input === "function" ? input() : input;
-  for (let procedure of operators) result = procedure(result);
-  return result;
+  let value = isFunction(input) ? input() : input;
+  for (let procedure of operators) value = procedure(value);
+  return value;
 }

@@ -70,7 +70,7 @@ export function FromTryCatch<V>(f: () => V): Maybe<V> {
  * @template From input `Maybe`s `Some` value
  * @template To output `Maybe`s `Some` value
  * @param {Mapper<From, To>} mapper mapping function
- * @returns {Operator<Maybe<From>, Maybe<From | To>>} maybe of original `Some` type or output type
+ * @returns {Operator<Maybe<From>, Maybe<To>>} function that takes `Maybe<From>` input and returns new mapped `Maybe<To>` if input was `Some`
  * ### Use
  * @example
  * ```
@@ -87,7 +87,7 @@ export function FromTryCatch<V>(f: () => V): Maybe<V> {
  */
 export function map<From, To>(
   mapper: (some: From) => To
-): Operator<Maybe<From>, Maybe<From | To>> {
+): Operator<Maybe<From>, Maybe<To>> {
   return maybe => (isSome(maybe) ? Some(mapper(maybe.value)) : maybe);
 }
 
@@ -257,7 +257,6 @@ export function property<V extends DynamicRecord, K extends keyof V>(
 export function is<Type>(guard: Guard<Type>): Operator<Maybe.Any, Maybe<Type>> {
   return maybe => {
     if (isNone(maybe)) return maybe;
-    console.log(typeof guard);
     if (!guard(maybe.value)) return None();
     return Some(maybe.value);
   };

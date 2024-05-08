@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { Some, isSome, None, isNone } from "..";
+import { describe, it, expect, expectTypeOf } from "vitest";
+import { Some, isSome, None, isNone, Maybe } from "..";
 import { job } from "../../job";
 import { map } from "../scoped";
 
@@ -45,5 +45,20 @@ describe("map [runtime]", () => {
 
       expect(isNone(value)).toBe(true);
     });
+  });
+});
+
+describe("map [types]", () => {
+  it("should return new mapped Maybe type", () => {
+    const inner = 10;
+    const some = Some(inner);
+    const mapper = (x: number): string => `${x}`;
+
+    const value = job(some, map(mapper));
+
+    type Test = typeof value;
+    type Expected = Maybe<string>;
+
+    expectTypeOf<Test>().toMatchTypeOf<Expected>();
   });
 });

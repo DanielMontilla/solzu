@@ -29,3 +29,8 @@ export type Callback = () => void;
  * Function that takes input, and returns boolean based on arbitrary condition
  */
 export type Predicate<Input> = (input: Input) => boolean;
+
+/**
+ * Function to perform runtime type checking
+ */
+export type Guard<Value> = (input: unknown) => input is Value;

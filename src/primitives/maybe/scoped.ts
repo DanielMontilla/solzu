@@ -1,5 +1,6 @@
 import { Future, Maybe, None, Some, isMaybe, isNone, isSome } from ".";
-import { Operator } from "../../types";
+import { hasKey, isObject } from "../../modules";
+import { DynamicRecord, Guard, Operator } from "../../types";
 
 /**
  * Alias for `Maybe.Flatten`
@@ -216,5 +217,48 @@ export function peek<V>(f: (some: V) => any): Operator<Maybe<V>, Maybe<V>> {
   return maybe => {
     if (isSome(maybe)) f(maybe.value);
     return maybe;
+  };
+}
+
+/**
+ * Extract value of object property
+ * @template V inner `Some` value type. Must extends any `Record` or `Object` type
+ * @template K type of `V` indexable key
+ * @param {K} key the key to look for
+ * @returns {Operator<Maybe<V>, Maybe<V[K]>>} function with input `Maybe<V>` and returns `Some` if input is `Some` and given property exists. Otherwise `None`
+ */
+export function property<V extends DynamicRecord, K extends keyof V>(
+  key: K
+): Operator<Maybe<V>, Maybe<V[K]>>;
+
+/**
+ * Extract value of object property if it exists
+ * @template V inner `Some` value type. Must extends any `Record` or `Object` type
+ * @param {K} key the key to look for
+ * @returns {Operator<Maybe<V>, Maybe<unknown>>} function with input `Maybe<V>` and returns `Some` if input is `Some` and given property exists. Otherwise `None`
+ */
+export function property<V extends DynamicRecord>(
+  key: PropertyKey
+): Operator<Maybe<V>, Maybe<unknown>>;
+
+/**
+ * @internal
+ */
+export function property<V extends DynamicRecord, K extends keyof V>(
+  key: K
+): Operator<Maybe<V>, Maybe<V[K]>> {
+  return maybe => {
+    if (isNone(maybe)) return maybe;
+    if (!isObject(maybe.value) || !hasKey(maybe.value, key)) return None();
+    return Some(maybe.value[key]);
+  };
+}
+
+export function is<Type>(guard: Guard<Type>): Operator<Maybe.Any, Maybe<Type>> {
+  return maybe => {
+    if (isNone(maybe)) return maybe;
+    console.log(typeof guard);
+    if (!guard(maybe.value)) return None();
+    return Some(maybe.value);
   };
 }

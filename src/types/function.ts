@@ -27,10 +27,25 @@ export type Callback = () => void;
 
 /**
  * Function that takes input, and returns boolean based on arbitrary condition
+ * @template Input the input argument value type
  */
 export type Predicate<Input> = (input: Input) => boolean;
 
 /**
  * Function to perform runtime type checking
+ * @template Value the expected output type of `input` give the boolean result
  */
 export type Guard<Value> = (input: unknown) => input is Value;
+
+/**
+ * Function that performs some effect. Can return anything
+ */
+export type Effect = () => any;
+
+export module Effect {
+  /**
+   * Function that performs some effect w/ single provided input
+   * @template Input the input argument value type
+   */
+  export type Unary<Input> = (input: Input) => any;
+}

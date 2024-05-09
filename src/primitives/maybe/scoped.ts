@@ -1,6 +1,6 @@
 import { Future, Maybe, None, Some, isMaybe, isNone, isSome } from ".";
 import { hasKey, isObject } from "../../modules";
-import { DynamicRecord, Guard, Operator } from "../../types";
+import type { DynamicRecord, Guard, Operator } from "../../types";
 
 /**
  * Alias for `Maybe.Flatten`
@@ -259,5 +259,49 @@ export function is<Type>(guard: Guard<Type>): Operator<Maybe.Any, Maybe<Type>> {
     if (isNone(maybe)) return maybe;
     if (!guard(maybe.value)) return None();
     return Some(maybe.value);
+  };
+}
+
+/**
+ * Perfoms some side effect when input `Maybe` is instance of `Some`
+ * @template V inner `Some` value type
+ * @param {Effect.Unary<V>} f function with single argument of `V`
+ * @returns {Operator<Maybe<V>, Maybe<V>>} function with `Maybe` input and returns that same `Maybe`
+ */
+export function onSome<V>(f: (some: V) => any): Operator<Maybe<V>, Maybe<V>> {
+  return maybe => {
+    if (isSome(maybe)) f(maybe.value);
+    return maybe;
+  };
+}
+
+/**
+ * Perfoms some side effect when input `Maybe` is instance of `None`
+ * @template V inner `Some` value type
+ * @param {Effect} f function with no parameters. Can return anything
+ * @returns {Operator<Maybe<V>, Maybe<V>>} function with `Maybe` input and returns that same `Maybe`
+ */
+export function onNone<V>(f: () => any): Operator<Maybe<V>, Maybe<V>> {
+  return maybe => {
+    if (isNone(maybe)) f();
+    return maybe;
+  };
+}
+
+/**
+ * Performs an effect based on the instance type of the input `Maybe`.
+ * @template V the type of value contained within `Some`
+ * @param {Object} branches object containing the possible branches
+ * - `some`: function that takes the value of `Some` as an argument and can return anything.
+ * - `none`: function that takes no arguments and can return anything.
+ * @returns {Operator<Maybe<V>, Maybe<V>>} a function that takes a `Maybe` input and returns that same `Maybe`
+ */
+export function match<V>(branches: {
+  some: (value: V) => any;
+  none: () => any;
+}): Operator<Maybe<V>, Maybe<V>> {
+  return maybe => {
+    isSome(maybe) ? branches.some(maybe.value) : branches.none();
+    return maybe;
   };
 }

@@ -1,6 +1,8 @@
 import { Future, Maybe, None, Some, isMaybe, isNone, isSome } from ".";
 import { hasKey, isObject } from "../../modules";
 import type { DynamicRecord, Guard, Operator } from "../../types";
+import { Nothing } from "../nothing";
+import { Err, Ok, Result } from "../result";
 
 /**
  * Alias for `Maybe.Flatten`
@@ -303,5 +305,78 @@ export function match<V>(branches: {
   return maybe => {
     isSome(maybe) ? branches.some(maybe.value) : branches.none();
     return maybe;
+  };
+}
+
+/**
+ * Like `map` but with mapper that could throw
+ * @template From original inner `Some` value type
+ * @template To output inner `Some` value type
+ * @param {import("../../types").Mapper<From, To>} mapper function that maps inner `Some` value to some other value. Could throw.
+ * @returns {Operator<Maybe<From>, Maybe<To>>} function that given input `Maybe` uses mapper function to map inner `Some` value. If input is `None` or `mapper` throws, function returns `None`
+ * @see {@link map}
+ */
+export function tryMap<From, To>(
+  mapper: (some: From) => To
+): Operator<Maybe<From>, Maybe<To>> {
+  return maybe => {
+    if (isNone(maybe)) return maybe;
+    try {
+      return Some(mapper(maybe.value));
+    } catch {
+      return None();
+    }
+  };
+}
+
+/**
+ * Safely trys to parse json string. If the parsing throws errors, operator returns `None`
+ * @returns {Operator<Maybe<string>, Maybe<any>>} function with input `Maybe<string>` attempts to `JSON.parse` it. If successful then `Some(value)` otherwise `None`
+ */
+export function parseJson(): Operator<Maybe<string>, Maybe<any>> {
+  return maybe => {
+    if (isNone(maybe)) return maybe;
+    try {
+      return Some(JSON.parse(maybe.value));
+    } catch {
+      return None();
+    }
+  };
+}
+
+/**
+ * Dangerously casts `Maybe`'s inner value. NOT RECOMMENDED. Use `is` instead
+ * @template To outputs inner `Some` value type
+ * @returns {Operator<Maybe<any>, Maybe<To>>} function that takes any `Maybe` and turns it into `Maybe<To>`
+ */
+export function cast<To>(): Operator<Maybe<any>, Maybe<To>> {
+  return maybe => maybe as unknown as Maybe<To>;
+}
+
+/**
+ * Converts `Maybe` into `Result`
+ * @template V target `Ok` value type
+ * @template E target `Err` error type
+ * @param {E} error value of error incase input `Maybe` is of instance `None`
+ * @returns {Operator<Maybe<V>, Result<V, E>>} function with input `Maybe`, and output of converted `Result`
+ */
+export function toResult<V, E>(error: E): Operator<Maybe<V>, Result<V, E>>;
+
+/**
+ * Converts `Maybe` into `Result`
+ * @template V target `Ok` value type
+ * @returns {Operator<Maybe<V>, Result<V, Nothing>>} function with input `Maybe`, and output of converted `Result`. Always `Nothing` in `Err` channel
+ */
+export function toResult<V>(): Operator<Maybe<V>, Result<V, Nothing>>;
+
+/**
+ * @internal
+ */
+export function toResult<V, E>(
+  error?: E
+): Operator<Maybe<V>, Result<V, E> | Result<V, Nothing>> {
+  return maybe => {
+    if (isNone(maybe)) return error ? Err(error) : Err();
+    return Ok(maybe.value);
   };
 }

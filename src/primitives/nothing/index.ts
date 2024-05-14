@@ -1,23 +1,8 @@
-import { $CLASSIFIER, $SPECIFIER } from "../../data";
-
-/**
- * Unique classifier for `Nothing` type
- * @internal
- */
-export const NOTHING_CLASSIFIER = Symbol("solzu:core@nothing");
-
-/**
- * Unique kind discriminator for `Nothing` type
- * @internal
- */
-export const NOTHING_SPECIFIER = "nothing" as const;
-
 /**
  * Explicit empty type
  */
 export type Nothing = {
-  readonly [$SPECIFIER]: "nothing";
-  readonly [$CLASSIFIER]: typeof NOTHING_CLASSIFIER;
+  readonly nothing: true;
 };
 
 /**
@@ -30,9 +15,7 @@ let _nothing: undefined | Nothing;
  * @returns {Nothing} nothing instance
  */
 export const Nothing = (): Nothing =>
-  _nothing !== undefined ? _nothing : (
-    (_nothing = { kind: NOTHING_SPECIFIER, [$CLASSIFIER]: NOTHING_CLASSIFIER })
-  );
+  _nothing !== undefined ? _nothing : (_nothing = { nothing: true });
 
 /**
  * Checks if thing is instance of `Nothing`
@@ -40,13 +23,10 @@ export const Nothing = (): Nothing =>
  * @returns {boolean} `true` thins is `Nothing`. Otherwise `false`
  */
 export function isNothing(thing: unknown): thing is Nothing {
-  return (
-    typeof thing == "object" &&
-    thing !== null &&
-    Object.values(thing).length === 2 &&
-    $CLASSIFIER in thing &&
-    thing[$CLASSIFIER] === NOTHING_CLASSIFIER &&
-    $SPECIFIER in thing &&
-    thing[$SPECIFIER] === NOTHING_SPECIFIER
-  );
+  if (typeof thing !== "object") return false;
+  if (thing === null) return false;
+  if (Object.keys(thing).length !== 1) return false;
+  if (!("nothing" in thing && typeof thing.nothing === "boolean")) return false;
+
+  return thing.nothing;
 }

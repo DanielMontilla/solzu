@@ -1,20 +1,20 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
-import { Some, SOME_SPECIFIER, SOME_CLASSIFIER } from "..";
-import { $SPECIFIER, $CLASSIFIER } from "../../../data";
+import { Some } from "..";
 import { Nothing } from "../../nothing";
 
 describe("Some [runtime]", () => {
-  it("should match its runtime specifier w/ explicit specifier", () => {
-    const value = Some("test");
+  it("should have true `some` property", () => {
+    const value = Some();
 
-    expect(value).toHaveProperty($SPECIFIER, SOME_SPECIFIER);
+    expect(value.some).toBe(true);
   });
 
-  it("should match its runtime classifier w/ explicit classifier", () => {
-    const value = Some("test");
+  it("should have false `none` property", () => {
+    const value = Some();
 
-    expect(value).toHaveProperty($CLASSIFIER, SOME_CLASSIFIER);
+    expect(value.none).toBe(false);
   });
+
   it("should return an empty some when no argument is provided", () => {
     const value = Some();
 

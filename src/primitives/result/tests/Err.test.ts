@@ -1,19 +1,18 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
-import { $SPECIFIER, $CLASSIFIER } from "../../../data";
+import { Err } from "..";
 import { Nothing } from "../../nothing";
-import { ERR_SPECIFIER, ERR_CLASSIFIER, Err } from "..";
 
 describe("Err [runtime]", () => {
-  it("should match its runtime specifier w/ explicit specifier", () => {
-    const value = Err("test");
+  it("should have true `err` property", () => {
+    const value = Err();
 
-    expect(value).toHaveProperty($SPECIFIER, ERR_SPECIFIER);
+    expect(value.err).toBe(true);
   });
 
-  it("should match its runtime classifier w/ explicit classifier", () => {
-    const value = Err("test");
+  it("should have false `ok` property", () => {
+    const value = Err();
 
-    expect(value).toHaveProperty($CLASSIFIER, ERR_CLASSIFIER);
+    expect(value.ok).toBe(false);
   });
   it("should return an empty Err when no argument is provided", () => {
     const value = Err();

@@ -4,16 +4,16 @@ import { Nothing } from "../../nothing";
 
 describe("Maybe [runtime]", () => {
   it("should return None when no argument is provided", () => {
-    const value = Maybe();
+    const maybe = Maybe();
 
-    expect(value).toHaveProperty("kind", "none");
+    expect(maybe.none).toBe(true);
   });
 
   it("should return Some when argument is provided", () => {
     const inner = 0xf;
     const value = Maybe(inner);
 
-    expect(value).toHaveProperty("kind", "some");
+    expect(value.some).toBe(true);
     expect(value).toHaveProperty("value", inner);
   });
 });

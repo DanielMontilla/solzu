@@ -1,12 +1,16 @@
 import { describe, it, expectTypeOf, expect } from "vitest";
-import { None, NONE_CLASSIFIER, NONE_SPECIFIER } from "..";
-import { $SPECIFIER, $CLASSIFIER } from "../../../data";
+import { None } from "..";
 
 describe("None [runtime]", () => {
-  it("should return None", () => {
+  it("should have true `none` property", () => {
     const value = None();
 
-    expect(value).toHaveProperty("kind", "none");
+    expect(value.none).toBe(true);
+  });
+  it("should have false `some` property", () => {
+    const value = None();
+
+    expect(value.some).toBe(false);
   });
 
   it("should be identical to other None instances", () => {
@@ -14,18 +18,6 @@ describe("None [runtime]", () => {
     const b = None();
 
     expect(a).toBe(b);
-  });
-
-  it("should match its runtime specifier w/ explicit specifier", () => {
-    const value = None();
-
-    expect(value).toHaveProperty($SPECIFIER, NONE_SPECIFIER);
-  });
-
-  it("should match its runtime classifier w/ explicit classifier", () => {
-    const value = None();
-
-    expect(value).toHaveProperty($CLASSIFIER, NONE_CLASSIFIER);
   });
 });
 

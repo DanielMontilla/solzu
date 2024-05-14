@@ -1,39 +1,14 @@
 import { Nothing } from "..";
-import { $CLASSIFIER, $SPECIFIER } from "../../data";
 import { Decrement } from "../../types";
 import { MAX_UNFOLD_DEPTH } from "./scoped";
-
-/**
- * Unique classifier for `Ok` type
- * @internal
- */
-export const OK_CLASSIFIER = Symbol("solzu:core@ok");
-
-/**
- * Unique specifier discriminator for `Ok` type
- * @internal
- */
-export const OK_SPECIFIER = "ok" as const;
-
-/**
- * Unique classifier for `Err` type
- * @internal
- */
-export const ERR_CLASSIFIER = Symbol("solzu:core@err");
-
-/**
- * Unique specifier discriminator for `Err` type
- * @internal
- */
-export const ERR_SPECIFIER = "err" as const;
 
 /**
  * Represents the successful outcome of operation
  * @template V type of inner value
  */
 export type Ok<V> = {
-  readonly [$CLASSIFIER]: typeof OK_CLASSIFIER;
-  readonly [$SPECIFIER]: "ok";
+  readonly ok: true;
+  readonly err: false;
   readonly value: V;
 };
 
@@ -42,8 +17,8 @@ export type Ok<V> = {
  * @template E type of inner error
  */
 export type Err<E> = {
-  readonly [$CLASSIFIER]: typeof ERR_CLASSIFIER;
-  readonly [$SPECIFIER]: "err";
+  readonly ok: false;
+  readonly err: true;
   readonly error: E;
 };
 
@@ -163,8 +138,8 @@ export function Ok<V>(value: V): Ok<V>;
  */
 export function Ok<V>(value?: V): Ok<V> | Ok<Nothing> {
   return {
-    [$CLASSIFIER]: OK_CLASSIFIER,
-    [$SPECIFIER]: OK_SPECIFIER,
+    ok: true,
+    err: false,
     value: value !== undefined ? value : Nothing(),
   } as Ok<V> | Ok<Nothing>;
 }
@@ -190,8 +165,8 @@ export function Err<E>(error: E): Err<E>;
  */
 export function Err<E>(error?: E): Err<E> | Err<Nothing> {
   return {
-    [$CLASSIFIER]: ERR_CLASSIFIER,
-    [$SPECIFIER]: ERR_SPECIFIER,
+    ok: false,
+    err: true,
     error: error !== undefined ? error : Nothing(),
   } as Err<E> | Err<Nothing>;
 }
@@ -317,8 +292,32 @@ export function ErrOf<E>(error: E): Result<never, E> {
  * @param {Result<V, any>} result result to be checked
  * @returns {boolean} `true` if `Ok`. Otherwise `false`
  */
-export function isOk<V>(result: Result<V, any>): result is Ok<V> {
-  return result.kind === "ok";
+export function isOk<V>(result: Result<V, any>): result is Ok<V>;
+
+/**
+ * Checks if thing is `Ok`
+ * @param {unknown} thing result to be checked
+ * @returns {boolean} `true` if `Ok`. Otherwise `false`
+ */
+export function isOk(thing: unknown): thing is Ok<unknown>;
+
+/**
+ * @internal
+ */
+export function isOk<V>(
+  resultOrThing: Result<V, any> | unknown
+): resultOrThing is Ok<V> {
+  if (typeof resultOrThing !== "object") return false;
+  if (resultOrThing === null) return false;
+  if (Object.keys(resultOrThing).length !== 3) return false;
+  if (
+    !("ok" in resultOrThing && typeof resultOrThing.ok === "boolean") ||
+    !("err" in resultOrThing) ||
+    !("value" in resultOrThing)
+  )
+    return false;
+
+  return resultOrThing.ok;
 }
 
 /**
@@ -336,8 +335,32 @@ export const notErr = isOk;
  * @param {Result<any, E>} result result to be checked
  * @returns {boolean} `true` if `Err`. Otherwise `false`
  */
-export function isErr<E>(result: Result<any, E>): result is Err<E> {
-  return result.kind === "err";
+export function isErr<E>(result: Result<any, E>): result is Err<E>;
+
+/**
+ * Checks if thing is `Err`
+ * @param {unknown} thing to be checked
+ * @returns {boolean} `true` if `Err`. Otherwise `false`
+ */
+export function isErr(thing: unknown): thing is Err<unknown>;
+
+/**
+ * @internal
+ */
+export function isErr<E>(
+  resultOrThing: Result<any, E> | unknown
+): resultOrThing is Err<E> {
+  if (typeof resultOrThing !== "object") return false;
+  if (resultOrThing === null) return false;
+  if (Object.keys(resultOrThing).length !== 3) return false;
+  if (
+    !("err" in resultOrThing && typeof resultOrThing.err === "boolean") ||
+    !("ok" in resultOrThing) ||
+    !("error" in resultOrThing)
+  )
+    return false;
+
+  return resultOrThing.err;
 }
 
 /**
@@ -355,13 +378,7 @@ export const notOk = isErr;
  * @returns {boolean} `true` if thing is `Maybe`. Otherwise `false`
  */
 export function isResult(thing: unknown): thing is Result.Any {
-  return (
-    typeof thing == "object" &&
-    thing !== null &&
-    $CLASSIFIER in thing &&
-    (thing[$CLASSIFIER] === OK_CLASSIFIER ||
-      thing[$CLASSIFIER] === ERR_CLASSIFIER) &&
-    $SPECIFIER in thing &&
-    (thing[$SPECIFIER] === OK_SPECIFIER || thing[$SPECIFIER] === ERR_SPECIFIER)
-  );
+  return isOk(thing) || isErr(thing);
 }
+
+export * as R from "./scoped";

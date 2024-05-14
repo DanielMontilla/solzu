@@ -18,7 +18,7 @@ describe("isOk [runtime]", () => {
 });
 
 describe("isOk [types]", () => {
-  it("should narrow type via control flow inference", () => {
+  it("should narrow type via control flow inference for result type", () => {
     type Value = number;
     type Error = { code: string };
 
@@ -34,6 +34,24 @@ describe("isOk [types]", () => {
     if (!isOk(value)) {
       type Test = typeof value;
       type Expected = Err<Error>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    }
+  });
+
+  it("should narrow type via control flow inference for result unknown type", () => {
+    const value: unknown = null;
+
+    if (isOk(value)) {
+      type Test = typeof value;
+      type Expected = Ok<unknown>;
+
+      expectTypeOf<Test>().toMatchTypeOf<Expected>();
+    }
+
+    if (!isOk(value)) {
+      type Test = typeof value;
+      type Expected = unknown;
 
       expectTypeOf<Test>().toMatchTypeOf<Expected>();
     }

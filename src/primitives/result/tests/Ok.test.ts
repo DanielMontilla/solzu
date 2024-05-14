@@ -1,20 +1,20 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
-import { $SPECIFIER, $CLASSIFIER } from "../../../data";
 import { Nothing } from "../../nothing";
-import { OK_SPECIFIER, OK_CLASSIFIER, Ok } from "..";
+import { Ok } from "..";
 
 describe("Ok [runtime]", () => {
-  it("should match its runtime specifier w/ explicit specifier", () => {
-    const value = Ok("test");
+  it("should have true `ok` property", () => {
+    const value = Ok();
 
-    expect(value).toHaveProperty($SPECIFIER, OK_SPECIFIER);
+    expect(value.ok).toBe(true);
   });
 
-  it("should match its runtime classifier w/ explicit classifier", () => {
-    const value = Ok("test");
+  it("should have false `err` property", () => {
+    const value = Ok();
 
-    expect(value).toHaveProperty($CLASSIFIER, OK_CLASSIFIER);
+    expect(value.err).toBe(false);
   });
+
   it("should return an empty Ok when no argument is provided", () => {
     const value = Ok();
 

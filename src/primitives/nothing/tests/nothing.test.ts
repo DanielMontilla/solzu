@@ -1,25 +1,19 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
-import { Nothing, NOTHING_SPECIFIER, NOTHING_CLASSIFIER } from "..";
-import { $SPECIFIER, $CLASSIFIER } from "../../../data";
+import { Nothing } from "..";
 
 describe("Nothing [runtime]", () => {
-  it("should match its runtime specifier w/ explicit specifier", () => {
+  it("should have true `nothing` property", () => {
     const value = Nothing();
 
-    expect(value).toHaveProperty($SPECIFIER, NOTHING_SPECIFIER);
-  });
-
-  it("should match its runtime classifier w/ explicit classifier", () => {
-    const value = Nothing();
-
-    expect(value).toHaveProperty($CLASSIFIER, NOTHING_CLASSIFIER);
+    expect(value.nothing).toBe(true);
   });
 });
 
 describe("Nothing [types]", () => {
-  it("kind should match specifier", () => {
-    type Test = typeof NOTHING_SPECIFIER;
+  it("should have `nothing` property of type `true`", () => {
+    const value = Nothing();
+    type Test = typeof value.nothing;
 
-    expectTypeOf<Test>().toMatchTypeOf<Nothing["kind"]>();
+    expectTypeOf<Test>().toMatchTypeOf<true>();
   });
 });

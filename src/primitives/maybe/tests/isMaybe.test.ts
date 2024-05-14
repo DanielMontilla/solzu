@@ -1,6 +1,5 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
 import { Some, isMaybe, None, Maybe } from "..";
-import { $SPECIFIER, $CLASSIFIER } from "../../../data";
 
 describe("isMaybe [runtime]", () => {
   it("should return true when Some value is passed in", () => {
@@ -19,17 +18,6 @@ describe("isMaybe [runtime]", () => {
 
   it("should return false for an arbitrary object", () => {
     const maybe = { prop1: "hi", prop2: 10, prop3: true };
-    const value = isMaybe(maybe);
-
-    expect(value).toBe(false);
-  });
-
-  it("should return false for an object mimicking Maybe without correct symbols", () => {
-    const maybe = {
-      [$SPECIFIER]: "some",
-      [$CLASSIFIER]: Symbol("solzu:core@some"),
-      value: 10,
-    };
     const value = isMaybe(maybe);
 
     expect(value).toBe(false);

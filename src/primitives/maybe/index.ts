@@ -1,39 +1,14 @@
 import { Nothing } from "..";
-import { $CLASSIFIER, $SPECIFIER } from "../../data";
 import { Decrement } from "../../types";
 import { MAX_UNFOLD_DEPTH } from "./scoped";
-
-/**
- * Unique classifier for `Some` type
- * @internal
- */
-export const SOME_CLASSIFIER = Symbol("solzu:core@some");
-
-/**
- * Unique specifier discriminator for `Some` type
- * @internal
- */
-export const SOME_SPECIFIER = "some" as const;
-
-/**
- * Unique classifier for `None` type
- * @internal
- */
-export const NONE_CLASSIFIER = Symbol("solzu:core@none");
-
-/**
- * Unique specifier discriminator for `None` type
- * @internal
- */
-export const NONE_SPECIFIER = "none" as const;
 
 /**
  * Represents the presence of a value
  * @template V type of inner value
  */
 export type Some<V> = {
-  readonly [$CLASSIFIER]: typeof SOME_CLASSIFIER;
-  readonly [$SPECIFIER]: "some";
+  readonly some: true;
+  readonly none: false;
   readonly value: V;
 };
 
@@ -41,8 +16,8 @@ export type Some<V> = {
  * Represents the absence of a value
  */
 export type None = {
-  readonly [$CLASSIFIER]: typeof NONE_CLASSIFIER;
-  readonly [$SPECIFIER]: "none";
+  readonly some: false;
+  readonly none: true;
 };
 
 /**
@@ -146,8 +121,8 @@ export function Some<V>(value: V): Some<V>;
  */
 export function Some<V>(value?: V): Some<V> | Some<Nothing> {
   return {
-    [$CLASSIFIER]: SOME_CLASSIFIER,
-    [$SPECIFIER]: SOME_SPECIFIER,
+    some: true,
+    none: false,
     value: value !== undefined ? value : Nothing(),
   } as Some<V> | Some<Nothing>;
 }
@@ -163,9 +138,7 @@ let _none: undefined | None;
  * @returns {None} `None`
  */
 export function None(): None {
-  return _none !== undefined ? _none : (
-      (_none = { [$CLASSIFIER]: NONE_CLASSIFIER, [$SPECIFIER]: NONE_SPECIFIER })
-    );
+  return _none !== undefined ? _none : (_none = { none: true, some: false });
 }
 
 /**
@@ -194,11 +167,35 @@ export function Maybe<V>(value?: V): Maybe<V> {
 /**
  * Checks if provided `Maybe` is of type `Some`
  * @template V inner `Some` type
- * @param {Maybe<V>} maybe maybe to be checked
+ * @param {Maybe<V>} maybe to be checked
  * @returns {boolean} `true` if `Some`. Otherwise `false`
  */
-export function isSome<V>(maybe: Maybe<V>): maybe is Some<V> {
-  return maybe.kind === "some";
+export function isSome<V>(maybe: Maybe<V>): maybe is Some<V>;
+
+/**
+ * Checks if thing is `Some`
+ * @param {unknown} thing to be checked
+ * @returns {boolean} `true` if `Some`. Otherwise `false`
+ */
+export function isSome(thing: unknown): thing is Some<unknown>;
+
+/**
+ * @internal
+ */
+export function isSome<V>(
+  maybeOrThing: Maybe<V> | unknown
+): maybeOrThing is Some<V> {
+  if (typeof maybeOrThing !== "object") return false;
+  if (maybeOrThing === null) return false;
+  if (Object.keys(maybeOrThing).length !== 3) return false;
+  if (
+    !("some" in maybeOrThing && typeof maybeOrThing.some === "boolean") ||
+    !("none" in maybeOrThing) ||
+    !("value" in maybeOrThing)
+  )
+    return false;
+
+  return maybeOrThing.some;
 }
 
 /**
@@ -216,8 +213,30 @@ export const notNone = isSome;
  * @param {Maybe<V>} maybe maybe to be checked
  * @returns {boolean} `true` if `None`. Otherwise `false`
  */
-export function isNone<V>(maybe: Maybe<V>): maybe is None {
-  return maybe.kind === "none";
+export function isNone<V>(maybe: Maybe<V>): maybe is None;
+
+/**
+ * Checks if thing is `None`
+ * @param {unknown} thing maybe to be checked
+ * @returns {boolean} `true` if `None`. Otherwise `false`
+ */
+export function isNone(thing: unknown): thing is None;
+
+/**
+ * @internal
+ */
+export function isNone<V>(
+  maybeOrThing: Maybe<V> | unknown
+): maybeOrThing is None {
+  if (typeof maybeOrThing !== "object") return false;
+  if (maybeOrThing === null) return false;
+  if (Object.keys(maybeOrThing).length !== 2) return false;
+  if (
+    !("none" in maybeOrThing && typeof maybeOrThing.none === "boolean") ||
+    !("some" in maybeOrThing)
+  )
+    return false;
+  return maybeOrThing.none;
 }
 
 /**
@@ -230,19 +249,12 @@ export function isNone<V>(maybe: Maybe<V>): maybe is None {
 export const notSome = isNone;
 
 /**
- * Checks if provided `thing` is of type `Maybe`
+ * Checks if thing is of type `Maybe`
  * @param {unknown} thing data to be checked
  * @returns {boolean} `true` if thing is `Maybe`. Otherwise `false`
  */
 export function isMaybe(thing: unknown): thing is Maybe.Any {
-  return (
-    typeof thing == "object" &&
-    thing !== null &&
-    $CLASSIFIER in thing &&
-    (thing[$CLASSIFIER] === SOME_CLASSIFIER ||
-      thing[$CLASSIFIER] === NONE_CLASSIFIER) &&
-    $SPECIFIER in thing &&
-    (thing[$SPECIFIER] === SOME_SPECIFIER ||
-      thing[$SPECIFIER] === NONE_SPECIFIER)
-  );
+  return isSome(thing) || isNone(thing);
 }
+
+export * as M from "./scoped";

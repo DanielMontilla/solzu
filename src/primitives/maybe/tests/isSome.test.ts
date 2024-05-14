@@ -18,7 +18,7 @@ describe("isSome [runtime]", () => {
 });
 
 describe("isSome [types]", () => {
-  it("should narrow type via control flow inference", () => {
+  it("should narrow type via control flow inference for maybe type", () => {
     const value: Maybe<number> = Maybe(10);
 
     if (isSome(value)) {
@@ -27,6 +27,18 @@ describe("isSome [types]", () => {
 
     if (!isSome(value)) {
       expectTypeOf<typeof value>().toMatchTypeOf<None>();
+    }
+  });
+
+  it("should narrow type via control flow inference for unknow type", () => {
+    const value: unknown = null;
+
+    if (isSome(value)) {
+      expectTypeOf<typeof value>().toMatchTypeOf<Some<unknown>>();
+    }
+
+    if (!isSome(value)) {
+      expectTypeOf<typeof value>().toMatchTypeOf<unknown>();
     }
   });
 });

@@ -9,12 +9,6 @@ describe("Some [runtime]", () => {
     expect(value.some).toBe(true);
   });
 
-  it("should have false `none` property", () => {
-    const value = Some();
-
-    expect(value.none).toBe(false);
-  });
-
   it("should return an empty some when no argument is provided", () => {
     const value = Some();
 

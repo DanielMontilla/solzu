@@ -8,7 +8,6 @@ import { MAX_UNFOLD_DEPTH } from "./scoped";
  */
 export type Some<V> = {
   readonly some: true;
-  readonly none: false;
   readonly value: V;
 };
 
@@ -17,7 +16,6 @@ export type Some<V> = {
  */
 export type None = {
   readonly some: false;
-  readonly none: true;
 };
 
 /**
@@ -122,7 +120,6 @@ export function Some<V>(value: V): Some<V>;
 export function Some<V>(value?: V): Some<V> | Some<Nothing> {
   return {
     some: true,
-    none: false,
     value: value !== undefined ? value : Nothing(),
   } as Some<V> | Some<Nothing>;
 }
@@ -138,7 +135,7 @@ let _none: undefined | None;
  * @returns {None} `None`
  */
 export function None(): None {
-  return _none !== undefined ? _none : (_none = { none: true, some: false });
+  return _none !== undefined ? _none : (_none = { some: false });
 }
 
 /**
@@ -187,10 +184,9 @@ export function isSome<V>(
 ): maybeOrThing is Some<V> {
   if (typeof maybeOrThing !== "object") return false;
   if (maybeOrThing === null) return false;
-  if (Object.keys(maybeOrThing).length !== 3) return false;
+  if (Object.keys(maybeOrThing).length !== 2) return false;
   if (
     !("some" in maybeOrThing && typeof maybeOrThing.some === "boolean") ||
-    !("none" in maybeOrThing) ||
     !("value" in maybeOrThing)
   )
     return false;
@@ -230,13 +226,10 @@ export function isNone<V>(
 ): maybeOrThing is None {
   if (typeof maybeOrThing !== "object") return false;
   if (maybeOrThing === null) return false;
-  if (Object.keys(maybeOrThing).length !== 2) return false;
-  if (
-    !("none" in maybeOrThing && typeof maybeOrThing.none === "boolean") ||
-    !("some" in maybeOrThing)
-  )
+  if (Object.keys(maybeOrThing).length !== 1) return false;
+  if (!("some" in maybeOrThing && typeof maybeOrThing.some === "boolean"))
     return false;
-  return maybeOrThing.none;
+  return !maybeOrThing.some;
 }
 
 /**
@@ -256,5 +249,3 @@ export const notSome = isNone;
 export function isMaybe(thing: unknown): thing is Maybe.Any {
   return isSome(thing) || isNone(thing);
 }
-
-export * as M from "./scoped";

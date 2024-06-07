@@ -6,7 +6,7 @@ describe("Maybe [runtime]", () => {
   it("should return None when no argument is provided", () => {
     const maybe = Maybe();
 
-    expect(maybe.none).toBe(true);
+    expect(maybe.some).toBe(false);
   });
 
   it("should return Some when argument is provided", () => {

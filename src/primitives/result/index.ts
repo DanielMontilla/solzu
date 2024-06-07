@@ -380,5 +380,3 @@ export const notOk = isErr;
 export function isResult(thing: unknown): thing is Result.Any {
   return isOk(thing) || isErr(thing);
 }
-
-export * as R from "./scoped";

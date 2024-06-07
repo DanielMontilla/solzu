@@ -2,11 +2,6 @@ import { describe, it, expectTypeOf, expect } from "vitest";
 import { None } from "..";
 
 describe("None [runtime]", () => {
-  it("should have true `none` property", () => {
-    const value = None();
-
-    expect(value.none).toBe(true);
-  });
   it("should have false `some` property", () => {
     const value = None();
 

@@ -1,20 +1,18 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "Bundler",
-    "declaration": true,
-    "outDir": "./dist",
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "noEmit": false,
     "strict": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true
   },
-  "include": ["src/**/*"]
+  "include": ["./src/**/*", "./*.config.ts"]
 }

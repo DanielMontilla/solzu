@@ -16,37 +16,51 @@
     "url": "https://github.com/DanielMontilla/solzu/issues"
   },
   "scripts": {
-    "build": "tsc && vite build",
+    "build": "tsup",
     "test": "vitest"
   },
   "devDependencies": {
+    "@types/node": "^20.12.7",
+    "prettier": "^3.2.5",
+    "tsup": "^8.1.0",
     "typescript": "^5.4.5",
     "vite": "^5.2.10",
-    "vitest": "^1.5.2",
-    "vite-plugin-dts": "^3.9.0",
-    "prettier": "^3.2.5",
-    "@types/node": "^20.12.7"
+    "vitest": "^1.5.2"
   },
   "private": false,
   "type": "module",
   "main": "./dist/index.js",
-  "module": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
-    },
-    "./@result": {
-      "import": "./dist/primitives/result/scoped.js",
-      "require": "./dist/primitives/result/scoped.cjs",
-      "types": "./dist/primitives/result/scoped.d.ts"
+      "import": {
+        "default": "./dist/index.js",
+        "types": "./dist/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/index.cjs",
+        "type": "./dist/index.d.cts"
+      }
     },
     "./@maybe": {
-      "import": "./dist/primitives/maybe/scoped.js",
-      "require": "./dist/primitives/maybe/scoped.cjs",
-      "types": "./dist/primitives/maybe/scoped.d.ts"
+      "import": {
+        "default": "./dist/maybe/index.js",
+        "types": "./dist/maybe/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/maybe/index.cjs",
+        "types": "./dist/maybe/index.d.cts"
+      }
+    },
+    "./@result": {
+      "import": {
+        "default": "./dist/result/index.js",
+        "types": "./dist/result/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/result/index.cjs",
+        "types": "./dist/result/index.d.cts"
+      }
     }
   },
   "files": [

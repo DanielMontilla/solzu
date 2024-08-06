@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Some, None } from "..";
-import { take, TakeError } from "../scoped";
+import { take, TakeError } from "../fp";
 
 describe("take", () => {
   it("should extract inner value of some when provided with Some instance", () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Some, None } from "..";
-import { or } from "../scoped";
+import { or } from "../fp";
 
 describe("or", () => {
   it("should return the inner value when provided with Some instance", () => {

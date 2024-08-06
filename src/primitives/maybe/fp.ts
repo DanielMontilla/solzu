@@ -1,11 +1,12 @@
-import { Future, Maybe, None, Some, isMaybe, isNone, isSome } from ".";
-import { hasKey, isObject } from "../../modules";
+import { MAYBE_MAX_UNFOLD_DEPTH, Maybe, isSome } from ".";
 import type { DynamicRecord, Guard, Operator } from "../../types";
 import { Nothing } from "../nothing";
-import { Err, Ok, Result } from "../result";
+import { Result } from "../result";
+import type { TakeError } from "./oop";
+import * as M from "./oop";
 
 /**
- * Alias for `Maybe.Flatten`
+ * Alias re-export for `Maybe.Flatten`
  * @template M input `Maybe`
  * @retuns flattened maybe
  * @see {@link Maybe.Flatten}
@@ -13,7 +14,7 @@ import { Err, Ok, Result } from "../result";
 export type Flatten<M extends Maybe.Any> = Maybe.Flatten<M>;
 
 /**
- * Alias for `Maybe.Unfold`
+ * Alias re-export for `Maybe.Unfold`
  * @template R input `Result`
  * @template Limit maximun unfold depth. Default `typeof MAX_UNFOLD_DEPTH`
  * @returns unfolded result up to `Limit`
@@ -21,51 +22,8 @@ export type Flatten<M extends Maybe.Any> = Maybe.Flatten<M>;
  */
 export type Unfold<
   M extends Maybe.Any,
-  Limit extends number = typeof MAX_UNFOLD_DEPTH,
+  Limit extends number = typeof MAYBE_MAX_UNFOLD_DEPTH,
 > = Maybe.Unfold<M, Limit>;
-
-/**
- * Converts nullish value into `Maybe`
- * @constructor
- * @template V value
- * @param {V} value
- * @returns {Maybe<Exclude<V, null | undefined>>} `Some` if `value` in non nullish. `None` otherwise
- */
-export function FromNullish<V>(value: V): Maybe<Exclude<V, null | undefined>> {
-  if (value === null || value === undefined) return None();
-  return Some(value as Exclude<V, null | undefined>);
-}
-
-/**
- * Converts `Promise` into `Future`.
- * @constructor
- * @template V inner `Some` type
- * @param {Promise<V>} promise target promise
- * @returns {Future<V>} a future. `Some` if the promise resolved with expected value. `None` if it threw error/failed.
- * @see {@link Future}
- */
-export async function FromPromise<V>(promise: Promise<V>): Future<V> {
-  try {
-    return Some(await promise);
-  } catch (_) {
-    return None();
-  }
-}
-
-/**
- * Converts procedure that could potentially throw into `Maybe`
- * @constructor
- * @template V inner type of possible `Some` value
- * @param {Procedure<V>} f that could throw
- * @returns {Maybe<V>} `Some` if procedure succeeds. `None` if it throws error
- */
-export function FromTryCatch<V>(f: () => V): Maybe<V> {
-  try {
-    return Some(f());
-  } catch (_) {
-    return None();
-  }
-}
 
 /**
  * Transforms the inner value of `Some` with the provided mapping function. Otherwise, returns `None`
@@ -90,17 +48,7 @@ export function FromTryCatch<V>(f: () => V): Maybe<V> {
 export function map<From, To>(
   mapper: (some: From) => To
 ): Operator<Maybe<From>, Maybe<To>> {
-  return maybe => (isSome(maybe) ? Some(mapper(maybe.value)) : maybe);
-}
-
-/**
- * Error thrown for `take` operation
- * @see {@link take}
- */
-export class TakeError extends Error {
-  constructor() {
-    super("trying to take value from `None` instance");
-  }
+  return maybe => M.map(maybe, mapper);
 }
 
 /**
@@ -112,10 +60,7 @@ export class TakeError extends Error {
  * @see {@link TakeError}
  */
 export function take<V>(): Operator<Maybe<V>, V> {
-  return maybe => {
-    if (isSome(maybe)) return maybe.value;
-    throw new TakeError();
-  };
+  return maybe => M.take(maybe);
 }
 
 /**
@@ -143,30 +88,13 @@ export function or<V, Other = V>(value: Other): Operator<Maybe<V>, V | Other> {
 }
 
 /**
- * @internal
- */
-export const MAX_UNFOLD_DEPTH = 512;
-
-/**
  * Turns a nested maybe into a maybe of depth 1. Input maybe should never exceed a depth of `MAX_UNFOLD_DEPTH`.
  * @template V inner Some value type
  * @returns flattened maybe
- * @see {@link MAX_UNFOLD_DEPTH}
+ * @see {@link MAYBE_MAX_UNFOLD_DEPTH}
  */
 export function unfold<V>(): Operator<Maybe<V>, Unfold<Maybe<V>>> {
-  return maybe => {
-    if (isNone(maybe)) return maybe as Unfold<Maybe<V>>;
-
-    let inner = maybe.value;
-
-    for (let i = 0; i < MAX_UNFOLD_DEPTH; i++) {
-      if (!isMaybe(inner)) break;
-      if (isNone(inner)) return inner as Unfold<Maybe<V>>;
-      inner = inner.value;
-    }
-
-    return Some(inner) as Unfold<Maybe<V>>;
-  };
+  return maybe => M.unfold(maybe);
 }
 
 /**
@@ -175,12 +103,7 @@ export function unfold<V>(): Operator<Maybe<V>, Unfold<Maybe<V>>> {
  * @returns function with nested maybe input and returns flattened maybe
  */
 export function flatten<V>(): Operator<Maybe<V>, Flatten<Maybe<V>>> {
-  return maybe => {
-    if (isNone(maybe) || !isMaybe(maybe.value) || isNone(maybe.value))
-      return maybe as Flatten<Maybe<V>>;
-
-    return maybe.value as Flatten<Maybe<V>>;
-  };
+  return maybe => M.flatten(maybe);
 }
 
 /**
@@ -194,10 +117,7 @@ export function flatten<V>(): Operator<Maybe<V>, Flatten<Maybe<V>>> {
 export function flatmap<From, To>(
   mapper: (some: From) => Maybe<To>
 ): Operator<Maybe<From>, Maybe<To>> {
-  return maybe => {
-    if (isSome(maybe)) return mapper(maybe.value);
-    return None();
-  };
+  return maybe => M.flatmap(maybe, mapper);
 }
 
 /**
@@ -209,17 +129,11 @@ export function flatmap<From, To>(
 export function check<V>(
   predicate: (some: V) => boolean
 ): Operator<Maybe<V>, Maybe<V>> {
-  return maybe => {
-    if (isSome(maybe)) return predicate(maybe.value) ? maybe : None();
-    return None();
-  };
+  return maybe => M.check(maybe, predicate);
 }
 
 export function peek<V>(f: (some: V) => any): Operator<Maybe<V>, Maybe<V>> {
-  return maybe => {
-    if (isSome(maybe)) f(maybe.value);
-    return maybe;
-  };
+  return maybe => M.peek(maybe, f);
 }
 
 /**
@@ -249,45 +163,31 @@ export function property<V extends DynamicRecord>(
 export function property<V extends DynamicRecord, K extends keyof V>(
   key: K
 ): Operator<Maybe<V>, Maybe<V[K]>> {
-  return maybe => {
-    if (isNone(maybe)) return maybe;
-    if (!isObject(maybe.value) || !hasKey(maybe.value, key)) return None();
-    return Some(maybe.value[key]);
-  };
+  return maybe => M.property(maybe, key);
 }
 
 export function is<Type>(guard: Guard<Type>): Operator<Maybe.Any, Maybe<Type>> {
-  return maybe => {
-    if (isNone(maybe)) return maybe;
-    if (!guard(maybe.value)) return None();
-    return Some(maybe.value);
-  };
+  return maybe => M.is(maybe, guard);
 }
 
 /**
  * Perfoms some side effect when input `Maybe` is instance of `Some`
  * @template V inner `Some` value type
- * @param {Effect.Unary<V>} f function with single argument of `V`
+ * @param {import("../../types").Effect.Unary<V>} f function with single argument of `V`
  * @returns {Operator<Maybe<V>, Maybe<V>>} function with `Maybe` input and returns that same `Maybe`
  */
 export function onSome<V>(f: (some: V) => any): Operator<Maybe<V>, Maybe<V>> {
-  return maybe => {
-    if (isSome(maybe)) f(maybe.value);
-    return maybe;
-  };
+  return maybe => M.onSome(maybe, f);
 }
 
 /**
  * Perfoms some side effect when input `Maybe` is instance of `None`
  * @template V inner `Some` value type
- * @param {Effect} f function with no parameters. Can return anything
+ * @param {import("../../types").Effect} f function with no parameters. Can return anything
  * @returns {Operator<Maybe<V>, Maybe<V>>} function with `Maybe` input and returns that same `Maybe`
  */
 export function onNone<V>(f: () => any): Operator<Maybe<V>, Maybe<V>> {
-  return maybe => {
-    if (isNone(maybe)) f();
-    return maybe;
-  };
+  return maybe => M.onNone(maybe, f);
 }
 
 /**
@@ -302,10 +202,7 @@ export function match<V>(branches: {
   some: (value: V) => any;
   none: () => any;
 }): Operator<Maybe<V>, Maybe<V>> {
-  return maybe => {
-    isSome(maybe) ? branches.some(maybe.value) : branches.none();
-    return maybe;
-  };
+  return maybe => M.match(maybe, branches);
 }
 
 /**
@@ -319,14 +216,7 @@ export function match<V>(branches: {
 export function tryMap<From, To>(
   mapper: (some: From) => To
 ): Operator<Maybe<From>, Maybe<To>> {
-  return maybe => {
-    if (isNone(maybe)) return maybe;
-    try {
-      return Some(mapper(maybe.value));
-    } catch {
-      return None();
-    }
-  };
+  return maybe => M.tryMap(maybe, mapper);
 }
 
 /**
@@ -334,14 +224,7 @@ export function tryMap<From, To>(
  * @returns {Operator<Maybe<string>, Maybe<any>>} function with input `Maybe<string>` attempts to `JSON.parse` it. If successful then `Some(value)` otherwise `None`
  */
 export function parseJson(): Operator<Maybe<string>, Maybe<any>> {
-  return maybe => {
-    if (isNone(maybe)) return maybe;
-    try {
-      return Some(JSON.parse(maybe.value));
-    } catch {
-      return None();
-    }
-  };
+  return maybe => M.parseJson(maybe);
 }
 
 /**
@@ -350,7 +233,7 @@ export function parseJson(): Operator<Maybe<string>, Maybe<any>> {
  * @returns {Operator<Maybe<any>, Maybe<To>>} function that takes any `Maybe` and turns it into `Maybe<To>`
  */
 export function cast<To>(): Operator<Maybe<any>, Maybe<To>> {
-  return maybe => maybe as unknown as Maybe<To>;
+  return maybe => M.cast(maybe);
 }
 
 /**
@@ -374,9 +257,6 @@ export function toResult<V>(): Operator<Maybe<V>, Result<V, Nothing>>;
  */
 export function toResult<V, E>(
   error?: E
-): Operator<Maybe<V>, Result<V, E> | Result<V, Nothing>> {
-  return maybe => {
-    if (isNone(maybe)) return error ? Err(error) : Err();
-    return Ok(maybe.value);
-  };
+): Operator<Maybe<V>, Result<V, E | Nothing>> {
+  return maybe => (error ? M.toResult(maybe, error) : M.toResult(maybe));
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Some, isSome, Maybe, None, isNone } from "..";
-import { unfold, MAX_UNFOLD_DEPTH } from "../scoped";
+import { unfold, MAX_UNFOLD_DEPTH } from "../fp";
 
 describe("unfold [runtime]", () => {
   it("should return the original Some when provided with Some of depth 1", () => {

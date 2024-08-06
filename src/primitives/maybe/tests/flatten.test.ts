@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { flatten } from "../scoped";
+import { flatten } from "../fp";
 import { Some, None, isSome, isNone } from "..";
 
 describe("flatten [runtime]", () => {

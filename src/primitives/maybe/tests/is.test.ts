@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { isNone, isSome, Maybe, None, Some } from "..";
-import { is } from "../scoped";
+import { is } from "../fp";
 import { isNumber } from "../../../modules";
 import { job } from "../../job";
 

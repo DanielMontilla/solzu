@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FromTryCatch } from "../scoped";
-import { isErr, isOk } from "..";
+import { FromTryCatch, isErr, isOk } from "..";
 
 describe("FromTryCatch [runtime]", () => {
   it("should return Ok when try doesn't throw and catch is provided", () => {

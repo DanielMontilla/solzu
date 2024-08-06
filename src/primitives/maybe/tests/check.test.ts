@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Some, isSome, None } from "..";
-import { check } from "../scoped";
+import { check } from "../fp";
 
 describe("check [runtime]", () => {
   it("should return original Maybe when input is Some and predicate evaluates true", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { map } from "../scoped";
+import { map } from "../fp";
 import { Err, isErr, isOk, Ok } from "..";
 
 describe("map [runtime]", () => {

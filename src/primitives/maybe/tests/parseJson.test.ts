@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Some, isSome, isNone, None } from "..";
-import { parseJson } from "../scoped";
+import { parseJson } from "../fp";
 
 describe("parseJson [runtime]", () => {
   it("should return Some when input is Some with valid JSON", () => {

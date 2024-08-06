@@ -1,6 +1,5 @@
 import { Nothing } from "..";
 import { Decrement } from "../../types";
-import { MAX_UNFOLD_DEPTH } from "./scoped";
 
 /**
  * Represents the successful outcome of operation
@@ -8,7 +7,6 @@ import { MAX_UNFOLD_DEPTH } from "./scoped";
  */
 export type Ok<V> = {
   readonly ok: true;
-  readonly err: false;
   readonly value: V;
 };
 
@@ -18,9 +16,13 @@ export type Ok<V> = {
  */
 export type Err<E> = {
   readonly ok: false;
-  readonly err: true;
   readonly error: E;
 };
+
+/**
+ * @internal
+ */
+export const RESULT_MAX_UNFOLD_DEPTH = 512;
 
 /**
  * Either `Ok<V>` or `Err<E>`
@@ -28,7 +30,7 @@ export type Err<E> = {
  */
 export type Result<V = Nothing, E = Nothing> = Ok<V> | Err<E>;
 
-export module Result {
+export namespace Result {
   /**
    * Generic `Result` type. Extends `any` other result
    */
@@ -83,7 +85,7 @@ export module Result {
    */
   export type Unfold<
     Root extends Any,
-    Limit extends number = typeof MAX_UNFOLD_DEPTH,
+    Limit extends number = typeof RESULT_MAX_UNFOLD_DEPTH,
   > =
     Limit extends 0 ? Root
     : [Root] extends [Result<infer RootOk, infer RootErr>] ?
@@ -267,6 +269,43 @@ export function Result<ValueOrError, Error>(
 }
 
 /**
+ * Converts procedure that could potentially throw into `Result`
+ * @constructor
+ * @template V inner `Ok` value type
+ * @template E inner `Err` error type
+ * @param {Procedure<V>} $try function that return `Ok` value but could potententially throw
+ * @param {Procedure<V>} $catch called with unknown error if `$try` throws. Returns `Err` error
+ * @returns {Result<V, E>} `Ok` if `$try` succeeds. `Err` if it throws error
+ */
+export function FromTryCatch<V, E>(
+  $try: () => V,
+  $catch: (error: unknown) => E
+): Result<V, E>;
+
+/**
+ * Converts procedure that could potentially throw into `Result`
+ * @constructor
+ * @template V inner `Ok` value type
+ * @param {Procedure<V>} $try function that return `Ok` value but could potententially throw
+ * @returns {Result<V, unknown>} `Ok` if `$try` succeeds. `Err` if it throws error with unknown error
+ */
+export function FromTryCatch<V>($try: () => V): Result<V, unknown>;
+
+/**
+ * @internal
+ */
+export function FromTryCatch<V, E>(
+  $try: () => V,
+  $catch?: (error: unknown) => E
+): Result<V, unknown> | Result<V, E> {
+  try {
+    return Ok($try());
+  } catch (e) {
+    return $catch ? Err($catch(e)) : Err(e);
+  }
+}
+
+/**
  * Create `Ok` of type `Result<V, never>`
  * @template V inner `Ok` value type
  * @param value inner `Ok` value
@@ -354,13 +393,12 @@ export function isErr<E>(
   if (resultOrThing === null) return false;
   if (Object.keys(resultOrThing).length !== 3) return false;
   if (
-    !("err" in resultOrThing && typeof resultOrThing.err === "boolean") ||
-    !("ok" in resultOrThing) ||
+    !("ok" in resultOrThing && typeof resultOrThing.ok === "boolean") ||
     !("error" in resultOrThing)
   )
     return false;
 
-  return resultOrThing.err;
+  return !resultOrThing.ok;
 }
 
 /**

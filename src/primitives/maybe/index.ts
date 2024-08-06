@@ -1,6 +1,5 @@
 import { Nothing } from "..";
 import { Decrement } from "../../types";
-import { MAX_UNFOLD_DEPTH } from "./scoped";
 
 /**
  * Represents the presence of a value
@@ -24,7 +23,12 @@ export type None = {
  */
 export type Maybe<V> = Some<V> | None;
 
-export module Maybe {
+/**
+ * @internal
+ */
+export const MAYBE_MAX_UNFOLD_DEPTH = 512;
+
+export namespace Maybe {
   /**
    * Generic `Maybe` type. Extends `any` other maybe
    */
@@ -73,7 +77,7 @@ export module Maybe {
    */
   export type Unfold<
     Root extends Any,
-    Limit extends number = typeof MAX_UNFOLD_DEPTH,
+    Limit extends number = typeof MAYBE_MAX_UNFOLD_DEPTH,
   > =
     Limit extends 0 ? Root
     : [Root] extends [Maybe<infer RootSome>] ?
@@ -159,6 +163,49 @@ export function Maybe<V>(value: V): Maybe<V>;
  */
 export function Maybe<V>(value?: V): Maybe<V> {
   return value === undefined ? None() : Some(value);
+}
+
+/**
+ * Converts nullish value into `Maybe`
+ * @constructor
+ * @template V value
+ * @param {V} value
+ * @returns {Maybe<Exclude<V, null | undefined>>} `Some` if `value` in non nullish. `None` otherwise
+ */
+export function FromNullish<V>(value: V): Maybe<Exclude<V, null | undefined>> {
+  if (value === null || value === undefined) return None();
+  return Some(value as Exclude<V, null | undefined>);
+}
+
+/**
+ * Converts `Promise` into `Future`.
+ * @constructor
+ * @template V inner `Some` type
+ * @param {Promise<V>} promise target promise
+ * @returns {Future<V>} a future. `Some` if the promise resolved with expected value. `None` if it threw error/failed.
+ * @see {@link Future}
+ */
+export async function FromPromise<V>(promise: Promise<V>): Future<V> {
+  try {
+    return Some(await promise);
+  } catch (_) {
+    return None();
+  }
+}
+
+/**
+ * Converts procedure that could potentially throw into `Maybe`
+ * @constructor
+ * @template V inner type of possible `Some` value
+ * @param {Procedure<V>} f that could throw
+ * @returns {Maybe<V>} `Some` if procedure succeeds. `None` if it throws error
+ */
+export function FromTryCatch<V>(f: () => V): Maybe<V> {
+  try {
+    return Some(f());
+  } catch (_) {
+    return None();
+  }
 }
 
 /**

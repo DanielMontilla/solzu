@@ -1,7 +1,7 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
 import { Some, isSome, None, isNone, Maybe } from "..";
 import { job } from "../../job";
-import { map } from "../scoped";
+import { map } from "../fp";
 
 describe("map [runtime]", () => {
   it("should return mapped maybe's inner some value for Some inputs", () => {

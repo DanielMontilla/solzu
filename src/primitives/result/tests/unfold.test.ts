@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { unfold, MAX_UNFOLD_DEPTH } from "../scoped";
+import { unfold, RESULT_MAX_UNFOLD_DEPTH } from "../fp";
 import { Err, isErr, isOk, Ok, Result } from "..";
 
 describe("unfold [runtime]", () => {
@@ -28,7 +28,7 @@ describe("unfold [runtime]", () => {
       expect(value).toHaveProperty("value", inner);
     };
 
-    for (let i = 1; i <= MAX_UNFOLD_DEPTH; i++) run(i);
+    for (let i = 1; i <= RESULT_MAX_UNFOLD_DEPTH; i++) run(i);
   });
 
   it("should return the original Err when provided with Err", () => {

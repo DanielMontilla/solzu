@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Result } from "..";
-import { or } from "../scoped";
+import { or } from "../fp";
 
 describe("or [runtime]", () => {
   it("should return alternative value when input is Err w/ callback", () => {

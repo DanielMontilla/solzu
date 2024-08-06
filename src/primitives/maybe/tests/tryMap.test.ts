@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Some, isSome, isNone, None } from "..";
-import { tryMap } from "../scoped";
+import { tryMap } from "../fp";
 
 describe("tryMap [runtime]", () => {
   it("should return Some when input is Some and mapper does not throw", () => {

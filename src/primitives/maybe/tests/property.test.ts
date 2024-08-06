@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { job } from "../../job";
 import { isNone, isSome, Maybe, Some } from "..";
-import { property } from "../scoped";
+import { property } from "../fp";
 
 describe("property [runtime]", () => {
   it("should return Some<Inner> if provided with matching key", () => {

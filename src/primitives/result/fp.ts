@@ -1,4 +1,12 @@
-import { isOk, Result, Ok, Err, isErr, isResult } from ".";
+import {
+  isOk,
+  Result,
+  Ok,
+  Err,
+  isErr,
+  isResult,
+  RESULT_MAX_UNFOLD_DEPTH,
+} from ".";
 import { isFunction } from "../..";
 import { Operator } from "../../types";
 
@@ -19,45 +27,8 @@ export type Flatten<R extends Result.Any> = Result.Flatten<R>;
  */
 export type Unfold<
   R extends Result.Any,
-  Limit extends number = typeof MAX_UNFOLD_DEPTH,
+  Limit extends number = typeof RESULT_MAX_UNFOLD_DEPTH,
 > = Result.Unfold<R, Limit>;
-
-/**
- * Converts procedure that could potentially throw into `Result`
- * @constructor
- * @template V inner `Ok` value type
- * @template E inner `Err` error type
- * @param {Procedure<V>} $try function that return `Ok` value but could potententially throw
- * @param {Procedure<V>} $catch called with unknown error if `$try` throws. Returns `Err` error
- * @returns {Result<V, E>} `Ok` if `$try` succeeds. `Err` if it throws error
- */
-export function FromTryCatch<V, E>(
-  $try: () => V,
-  $catch: (error: unknown) => E
-): Result<V, E>;
-
-/**
- * Converts procedure that could potentially throw into `Result`
- * @constructor
- * @template V inner `Ok` value type
- * @param {Procedure<V>} $try function that return `Ok` value but could potententially throw
- * @returns {Result<V, unknown>} `Ok` if `$try` succeeds. `Err` if it throws error with unknown error
- */
-export function FromTryCatch<V>($try: () => V): Result<V, unknown>;
-
-/**
- * @internal
- */
-export function FromTryCatch<V, E>(
-  $try: () => V,
-  $catch?: (error: unknown) => E
-): Result<V, unknown> | Result<V, E> {
-  try {
-    return Ok($try());
-  } catch (e) {
-    return $catch ? Err($catch(e)) : Err(e);
-  }
-}
 
 /**
  * Error thrown for `take` operation
@@ -162,16 +133,11 @@ export function or<V, E>(
 }
 
 /**
- * @internal
- */
-export const MAX_UNFOLD_DEPTH = 512;
-
-/**
  * Turns a nested Result into a result of depth 1. This is for the Ok channel only. Input result should never exceed a depth of `MAX_UNFOLD_DEPTH`.
  * @template V inner Ok value type
  * @template E inner Err error type
  * @returns function that takes in nested result and returns unfolded result
- * @see {@link MAX_UNFOLD_DEPTH}
+ * @see {@link RESULT_MAX_UNFOLD_DEPTH}
  */
 export function unfold<V, E>(): Operator<Result<V, E>, Unfold<Result<V, E>>> {
   return result => {
@@ -179,7 +145,7 @@ export function unfold<V, E>(): Operator<Result<V, E>, Unfold<Result<V, E>>> {
 
     let inner = result.value;
 
-    for (let i = 0; i < MAX_UNFOLD_DEPTH; i++) {
+    for (let i = 0; i < RESULT_MAX_UNFOLD_DEPTH; i++) {
       if (!isResult(inner)) break;
       if (isErr(inner)) return inner as Unfold<Result<V, E>>;
       inner = inner.value;

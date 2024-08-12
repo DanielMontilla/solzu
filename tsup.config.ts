@@ -4,8 +4,10 @@ export default defineConfig({
   outDir: "./dist",
   entry: {
     index: "./src/index.ts",
-    ["maybe/index"]: "./src/primitives/maybe/scoped.ts",
-    ["result/index"]: "./src/primitives/result/scoped.ts",
+    ["maybe/mod/index"]: "./src/primitives/maybe/mod.ts",
+    ["maybe/fp/index"]: "./src/primitives/maybe/fp.ts",
+    ["result/mod/index"]: "./src/primitives/result/mod.ts",
+    ["result/fp/index"]: "./src/primitives/result/fp.ts",
   },
   clean: true,
   format: ["esm", "cjs"],

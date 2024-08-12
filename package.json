@@ -44,22 +44,42 @@
     },
     "./@maybe": {
       "import": {
-        "default": "./dist/maybe/index.js",
-        "types": "./dist/maybe/index.d.ts"
+        "default": "./dist/maybe/mod/index.js",
+        "types": "./dist/maybe/mod/index.d.ts"
       },
       "require": {
-        "default": "./dist/maybe/index.cjs",
-        "types": "./dist/maybe/index.d.cts"
+        "default": "./dist/maybe/mod/index.cjs",
+        "types": "./dist/maybe/mod/index.d.cts"
+      }
+    },
+    "./@maybe/fp": {
+      "import": {
+        "default": "./dist/maybe/fp/index.js",
+        "types": "./dist/maybe/fp/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/maybe/fp/index.cjs",
+        "types": "./dist/maybe/fp/index.d.cts"
       }
     },
     "./@result": {
       "import": {
-        "default": "./dist/result/index.js",
-        "types": "./dist/result/index.d.ts"
+        "default": "./dist/result/mod/index.js",
+        "types": "./dist/result/mod/index.d.ts"
       },
       "require": {
-        "default": "./dist/result/index.cjs",
-        "types": "./dist/result/index.d.cts"
+        "default": "./dist/result/mod/index.cjs",
+        "types": "./dist/result/mod/index.d.cts"
+      }
+    },
+    "./@result/fp": {
+      "import": {
+        "default": "./dist/result/fp/index.js",
+        "types": "./dist/result/fp/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/result/fp/index.cjs",
+        "types": "./dist/result/fp/index.d.cts"
       }
     }
   },

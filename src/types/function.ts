@@ -1,9 +1,23 @@
 /**
- * Function that takes a single `Input` argument and returns an expected `Output`
+ * A generic function signature
+ */
+export type Func = (...args: any[]) => any;
+
+/**
+ * Function that takes a single `Input`, operates on it and returns an `Output`
  * @template Input input type
  * @template Output expected output type
  */
 export type Operator<Input, Output = Input> = (input: Input) => Output;
+
+export namespace Operator {
+  export type Any = (input: any) => any;
+  export type Async<Input, Output = Input> = (input: Input) => Promise<Output>;
+
+  export namespace Async {
+    export type Any = (input: any) => Promise<any>;
+  }
+}
 
 /**
  * Function that takes single `From` value and maps it onto `To` value
@@ -19,6 +33,10 @@ export type Mapper<From, To> = (value: From) => To;
  * @template Output
  */
 export type Procedure<Output> = () => Output;
+
+export namespace Procedure {
+  export type Any = () => any;
+}
 
 /**
  * Function that takes no arguments and always returns `void` (nothing)
@@ -42,7 +60,7 @@ export type Guard<Value> = (input: unknown) => input is Value;
  */
 export type Effect = () => any;
 
-export module Effect {
+export namespace Effect {
   /**
    * Function that performs some effect w/ single provided input
    * @template Input the input argument value type

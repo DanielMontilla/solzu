@@ -141,7 +141,6 @@ export function Ok<V>(value: V): Ok<V>;
 export function Ok<V>(value?: V): Ok<V> | Ok<Nothing> {
   return {
     ok: true,
-    err: false,
     value: value !== undefined ? value : Nothing(),
   } as Ok<V> | Ok<Nothing>;
 }
@@ -168,7 +167,6 @@ export function Err<E>(error: E): Err<E>;
 export function Err<E>(error?: E): Err<E> | Err<Nothing> {
   return {
     ok: false,
-    err: true,
     error: error !== undefined ? error : Nothing(),
   } as Err<E> | Err<Nothing>;
 }
@@ -277,7 +275,7 @@ export function Result<ValueOrError, Error>(
  * @param {Procedure<V>} $catch called with unknown error if `$try` throws. Returns `Err` error
  * @returns {Result<V, E>} `Ok` if `$try` succeeds. `Err` if it throws error
  */
-export function FromTryCatch<V, E>(
+export function ResultFromTryCatch<V, E>(
   $try: () => V,
   $catch: (error: unknown) => E
 ): Result<V, E>;
@@ -289,12 +287,12 @@ export function FromTryCatch<V, E>(
  * @param {Procedure<V>} $try function that return `Ok` value but could potententially throw
  * @returns {Result<V, unknown>} `Ok` if `$try` succeeds. `Err` if it throws error with unknown error
  */
-export function FromTryCatch<V>($try: () => V): Result<V, unknown>;
+export function ResultFromTryCatch<V>($try: () => V): Result<V, unknown>;
 
 /**
  * @internal
  */
-export function FromTryCatch<V, E>(
+export function ResultFromTryCatch<V, E>(
   $try: () => V,
   $catch?: (error: unknown) => E
 ): Result<V, unknown> | Result<V, E> {
@@ -348,10 +346,9 @@ export function isOk<V>(
 ): resultOrThing is Ok<V> {
   if (typeof resultOrThing !== "object") return false;
   if (resultOrThing === null) return false;
-  if (Object.keys(resultOrThing).length !== 3) return false;
+  if (Object.keys(resultOrThing).length !== 2) return false;
   if (
     !("ok" in resultOrThing && typeof resultOrThing.ok === "boolean") ||
-    !("err" in resultOrThing) ||
     !("value" in resultOrThing)
   )
     return false;
@@ -391,7 +388,7 @@ export function isErr<E>(
 ): resultOrThing is Err<E> {
   if (typeof resultOrThing !== "object") return false;
   if (resultOrThing === null) return false;
-  if (Object.keys(resultOrThing).length !== 3) return false;
+  if (Object.keys(resultOrThing).length !== 2) return false;
   if (
     !("ok" in resultOrThing && typeof resultOrThing.ok === "boolean") ||
     !("error" in resultOrThing)

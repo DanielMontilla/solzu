@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { unfold, RESULT_MAX_UNFOLD_DEPTH } from "../fp";
-import { Err, isErr, isOk, Ok, Result } from "..";
+import { unfold } from "../fp";
+import { Err, isErr, isOk, Ok, Result, RESULT_MAX_UNFOLD_DEPTH } from "..";
 
 describe("unfold [runtime]", () => {
   it("should return the original Ok when provided with Ok of depth 1", () => {

@@ -1,6 +1,6 @@
 import { job, OkOf, Result, isNumber, isInt } from "../..";
 import { defineEnum } from "../macros";
-import * as R from "../../primitives/result/scoped";
+import * as R from "../../primitives/result/fp";
 
 /**
  * Generates a random floating-point number between 0 (inclusive) and 1 (exclusive).
@@ -10,7 +10,7 @@ export function nextFloat(): number {
   return Math.random();
 }
 
-export module nextFloat {
+export namespace nextFloat {
   /**
    * Generates a random floating-point number between the specified minimum and maximum range
    * @param {number} min minimum number in the range. Must be integer
@@ -30,7 +30,7 @@ export module nextFloat {
     );
   }
 
-  export module between {
+  export namespace between {
     export type Error = (typeof Error)[keyof typeof Error];
     export const Error = defineEnum(["InvalidRange", "InvalidInput"] as const);
 
@@ -55,7 +55,7 @@ export function nextInt(): 0 | 1 {
   return Math.floor(Math.random() * 2) as 0 | 1;
 }
 
-export module nextInt {
+export namespace nextInt {
   /**
    * Generates a random integer between the specified minimum and maximum range (inclusive) without validation
    * This function expects the inputs are valid numbers with `min <= max`. Otherwise might behave in unexpected ways.
@@ -78,7 +78,7 @@ export module nextInt {
     );
   }
 
-  export module between {
+  export namespace between {
     export type Error = (typeof Error)[keyof typeof Error];
     export const Error = defineEnum(["InvalidRange", "InvalidInput"] as const);
 

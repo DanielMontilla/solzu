@@ -3,12 +3,6 @@ import { Err } from "..";
 import { Nothing } from "../../nothing";
 
 describe("Err [runtime]", () => {
-  it("should have true `err` property", () => {
-    const value = Err();
-
-    expect(value.err).toBe(true);
-  });
-
   it("should have false `ok` property", () => {
     const value = Err();
 

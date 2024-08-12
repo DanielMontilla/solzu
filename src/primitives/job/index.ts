@@ -1,5 +1,5 @@
 import { isFunction } from "../../modules";
-import { Procedure, Operator } from "../../types";
+import { Procedure, Operator, Func } from "../../types";
 
 /**
  * takes `input` through a sequence of transformations
@@ -145,7 +145,7 @@ export function job<Input, A, B, C, D, E, F, G, H, I, J, K, Output>(
 /**
  * @internal
  * */
-export function job(input: any, ...operators: Function[]): any {
+export function job(input: any, ...operators: Func[]): any {
   let value = isFunction(input) ? input() : input;
   for (let procedure of operators) value = procedure(value);
   return value;

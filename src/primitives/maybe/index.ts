@@ -172,7 +172,9 @@ export function Maybe<V>(value?: V): Maybe<V> {
  * @param {V} value
  * @returns {Maybe<Exclude<V, null | undefined>>} `Some` if `value` in non nullish. `None` otherwise
  */
-export function FromNullish<V>(value: V): Maybe<Exclude<V, null | undefined>> {
+export function MaybeFromNullish<V>(
+  value: V
+): Maybe<Exclude<V, null | undefined>> {
   if (value === null || value === undefined) return None();
   return Some(value as Exclude<V, null | undefined>);
 }
@@ -185,7 +187,7 @@ export function FromNullish<V>(value: V): Maybe<Exclude<V, null | undefined>> {
  * @returns {Future<V>} a future. `Some` if the promise resolved with expected value. `None` if it threw error/failed.
  * @see {@link Future}
  */
-export async function FromPromise<V>(promise: Promise<V>): Future<V> {
+export async function MaybeFromPromise<V>(promise: Promise<V>): Future<V> {
   try {
     return Some(await promise);
   } catch (_) {
@@ -200,7 +202,7 @@ export async function FromPromise<V>(promise: Promise<V>): Future<V> {
  * @param {Procedure<V>} f that could throw
  * @returns {Maybe<V>} `Some` if procedure succeeds. `None` if it throws error
  */
-export function FromTryCatch<V>(f: () => V): Maybe<V> {
+export function MaybeFromTryCatch<V>(f: () => V): Maybe<V> {
   try {
     return Some(f());
   } catch (_) {

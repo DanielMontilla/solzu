@@ -4,6 +4,9 @@ import {
   isSome,
   Maybe,
   MAYBE_MAX_UNFOLD_DEPTH,
+  MaybeFromNullish,
+  MaybeFromPromise,
+  MaybeFromTryCatch,
   None,
   Some,
 } from ".";
@@ -32,17 +35,38 @@ export type Unfold<
 > = Maybe.Unfold<M, Limit>;
 
 /**
- * Error thrown for `take` operation
- * @see {@link take}
+ * Alias re-export for `MaybeFromNullish`
+ * @constructor
+ * @template V value
+ * @param {V} value
+ * @returns {Maybe<Exclude<V, null | undefined>>} `Some` if `value` in non nullish. `None` otherwise
+ * @see {@link MaybeFromNullish}
  */
-export class TakeError extends Error {
-  constructor() {
-    super("trying to take value from `None` instance");
-  }
-}
+export const FromNullish = MaybeFromNullish;
 
 /**
- * Transforms the inner value of `Some` with the provided mapping function. Otherwise, returns `None`
+ * Alias re-export for `MaybeFromPromise`
+ * @constructor
+ * @template V inner `Some` type
+ * @param {Promise<V>} promise target promise
+ * @returns {Future<V>} a future. `Some` if the promise resolved with expected value. `None` if it threw error/failed.
+ * @see {@link Future}
+ * @see {@link MaybeFromPromise}
+ */
+export const FromPromise = MaybeFromPromise;
+
+/**
+ * Alias re-export for `MaybeFromTryCatch`
+ * @constructor
+ * @template V inner type of possible `Some` value
+ * @param {Procedure<V>} f that could throw
+ * @returns {Maybe<V>} `Some` if procedure succeeds. `None` if it throws error
+ * @see {@link MaybeFromTryCatch}
+ */
+export const FromTryCatch = MaybeFromTryCatch;
+
+/**
+ * Transforms the inner value of `Some` with the provided mapping function. Otherwise, returns `None`.
  * @template From input `Maybe`s `Some` value
  * @template To output `Maybe`s `Some` value
  * @param {Mapper<From, To>} mapper mapping function
@@ -53,6 +77,16 @@ export function map<From, To>(
   mapper: (some: From) => To
 ): Maybe<To> {
   return isSome(maybe) ? Some(mapper(maybe.value)) : maybe;
+}
+
+/**
+ * Error thrown for `take` operation
+ * @see {@link take}
+ */
+export class TakeError extends Error {
+  constructor() {
+    super("trying to take value from `None` instance");
+  }
 }
 
 /**

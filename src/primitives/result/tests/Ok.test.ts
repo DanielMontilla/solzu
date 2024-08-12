@@ -9,12 +9,6 @@ describe("Ok [runtime]", () => {
     expect(value.ok).toBe(true);
   });
 
-  it("should have false `err` property", () => {
-    const value = Ok();
-
-    expect(value.err).toBe(false);
-  });
-
   it("should return an empty Ok when no argument is provided", () => {
     const value = Ok();
 

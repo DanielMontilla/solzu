@@ -1,9 +1,15 @@
-import { MAYBE_MAX_UNFOLD_DEPTH, Maybe, isSome } from ".";
+import {
+  type Maybe,
+  type MAYBE_MAX_UNFOLD_DEPTH,
+  MaybeFromNullish,
+  MaybeFromPromise,
+  MaybeFromTryCatch,
+} from ".";
 import type { DynamicRecord, Guard, Operator } from "../../types";
 import { Nothing } from "../nothing";
 import { Result } from "../result";
-import type { TakeError } from "./oop";
-import * as M from "./oop";
+import type { TakeError } from "./mod";
+import * as M from "./mod";
 
 /**
  * Alias re-export for `Maybe.Flatten`
@@ -24,6 +30,37 @@ export type Unfold<
   M extends Maybe.Any,
   Limit extends number = typeof MAYBE_MAX_UNFOLD_DEPTH,
 > = Maybe.Unfold<M, Limit>;
+
+/**
+ * Alias re-export for `MaybeFromNullish`
+ * @constructor
+ * @template V value
+ * @param {V} value
+ * @returns {Maybe<Exclude<V, null | undefined>>} `Some` if `value` in non nullish. `None` otherwise
+ * @see {@link MaybeFromNullish}
+ */
+export const FromNullish = MaybeFromNullish;
+
+/**
+ * Alias re-export for `MaybeFromPromise`
+ * @constructor
+ * @template V inner `Some` type
+ * @param {Promise<V>} promise target promise
+ * @returns {Future<V>} a future. `Some` if the promise resolved with expected value. `None` if it threw error/failed.
+ * @see {@link Future}
+ * @see {@link MaybeFromPromise}
+ */
+export const FromPromise = MaybeFromPromise;
+
+/**
+ * Alias re-export for `MaybeFromTryCatch`
+ * @constructor
+ * @template V inner type of possible `Some` value
+ * @param {Procedure<V>} f that could throw
+ * @returns {Maybe<V>} `Some` if procedure succeeds. `None` if it throws error
+ * @see {@link MaybeFromTryCatch}
+ */
+export const FromTryCatch = MaybeFromTryCatch;
 
 /**
  * Transforms the inner value of `Some` with the provided mapping function. Otherwise, returns `None`
@@ -84,7 +121,7 @@ export function or<V, Other>(value: Other): Operator<Maybe<V>, V | Other>;
  * @internal
  */
 export function or<V, Other = V>(value: Other): Operator<Maybe<V>, V | Other> {
-  return maybe => (isSome(maybe) ? maybe.value : value);
+  return maybe => M.or(maybe, value);
 }
 
 /**

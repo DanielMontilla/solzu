@@ -1,28 +1,21 @@
-import {
-  isOk,
-  Result,
-  Ok,
-  Err,
-  isErr,
-  isResult,
-  RESULT_MAX_UNFOLD_DEPTH,
-} from ".";
-import { isFunction } from "../..";
-import { Operator } from "../../types";
+import { Result, RESULT_MAX_UNFOLD_DEPTH, ResultFromTryCatch } from ".";
+import type { Operator } from "../../types";
+import * as R from "./mod";
+import type { TakeError } from "./mod";
 
 /**
- * Alias for `Result.Flatten`
- * @template R input `Result`
- * @retuns flattened result (-1 depth)
+ * Alias for `Result.Flatten`. Reduces the nesting depth of a `Result` by one level.
+ * @template R The input `Result` type.
+ * @returns The flattened `Result`.
  * @see {@link Result.Flatten}
  */
 export type Flatten<R extends Result.Any> = Result.Flatten<R>;
 
 /**
- * Alias for `Result.Unfold`
- * @template R input `Result`
- * @template Limit maximun unfold depth. Default `typeof MAX_UNFOLD_DEPTH`
- * @returns unfolded result upto `Limit`
+ * Alias for `Result.Unfold`. Unfolds a nested `Result` up to a specified limit.
+ * @template R The input `Result` type.
+ * @template Limit The maximum depth for unfolding. Defaults to `RESULT_MAX_UNFOLD_DEPTH`.
+ * @returns The unfolded `Result`.
  * @see {@link Result.Unfold}
  */
 export type Unfold<
@@ -31,92 +24,91 @@ export type Unfold<
 > = Result.Unfold<R, Limit>;
 
 /**
- * Error thrown for `take` operation
- * @see {@link take}
+ * Alias re-export for `ResultFromTryCatch`.
+ * @see {@link ResultFromTryCatch}
  */
-export class TakeError extends Error {
-  constructor() {
-    super("trying to take value from `None` instance");
-  }
-}
+export const FromTryCatch = ResultFromTryCatch;
 
 /**
- * Dangerously assumes input `Result` is instance of `Ok`. Operator returns inner `Ok` value
- * @template V inner `Ok` value type
- * @throws {TakeError} when input is not instance of `Ok`
- * @returns {Operator<Result<V, any>, V>} inner `Some` value
- * @see {@link or}
+ * Creates an operator that extracts the `Ok` value from a `Result`, or throws `TakeError` if it is `Err`.
+ * @template V The type of the `Ok` value.
+ * @returns An operator that either returns the `Ok` value or throws an error.
+ * @throws {TakeError} if the result is not an `Ok`.
  * @see {@link TakeError}
+ * @see {@link or}
  */
 export function take<V>(): Operator<Result<V, any>, V> {
-  return result => {
-    if (isOk(result)) return result.value;
-    throw new TakeError();
-  };
+  return result => R.take(result);
 }
 
 /**
- * Peek into `Ok` value if present
- * @param {Operator<V, any>} f function that's provided inner `Ok` value in the case input `Result` is instance of `Ok`
- * @returns {Operator<Result<V, E>, Result<V, E>>} `Operator` that takes a `Result` and returns the same `Result`
+ * Creates an operator that applies a function to the `Ok` value of a `Result`, if present.
+ * @template V The type of the `Ok` value.
+ * @template E The type of the `Err` error.
+ * @param {Operator<V, any>} f A function to apply to the `Ok` value.
+ * @returns An operator that returns the same `Result`.
  */
 export function peek<V, E>(
   f: (ok: V) => any
 ): Operator<Result<V, E>, Result<V, E>> {
-  return result => {
-    if (isOk(result)) f(result.value);
-    return result;
-  };
+  return result => R.peek(result, f);
 }
 
 /**
- * Peek into `Err` error if present
- * @param {Operator<E, any>} f function that's provided inner `Err` error in the case input `Result` is instance of `Err`
- * @returns {Operator<Result<V, E>, Result<V, E>>} `Operator` that takes a `Result` and returns the same `Result`
+ * Creates an operator that applies a function to the `Err` value of a `Result`, if present.
+ * @template V The type of the `Ok` value.
+ * @template E The type of the `Err` error.
+ * @param {Operator<E, any>} f A function to apply to the `Err` value.
+ * @returns An operator that returns the same `Result`.
  */
 export function peekErr<V, E>(
   f: (err: E) => any
 ): Operator<Result<V, E>, Result<V, E>> {
-  return result => {
-    if (isErr(result)) f(result.error);
-    return result;
-  };
+  return result => R.peekErr(result, f);
 }
 
 /**
- * Transforms inner value of `Ok` with provided mapping function. Otherwise returns same `Err` result
- * @param {Mapper<From, To>} mapper mapping function
- * @template From input `Result`s `Ok` value type
- * @template E input `Result`s `Err` error type
- * @template To output `Resutl`s `Ok` value type
- * @returns {Result<From, E>, Result<To, E>} function that takes input `Result<From, E>` and returns mapped `Result<To, E>`
+ * Creates an operator that transforms the `Ok` value of a `Result` using a provided mapping function, or returns the same `Err`.
+ * @template From The type of the `Ok` value before the transformation.
+ * @template To The type of the `Ok` value after the transformation.
+ * @template E The type of the `Err` error.
+ * @param {import("../../types").Mapper<From, To>} mapper A function to transform the `Ok` value.
+ * @returns An operator that returns a new `Result` with the transformed `Ok` value or the same `Err`.
  */
 export function map<From, E, To>(
   mapper: (ok: From) => To
 ): Operator<Result<From, E>, Result<To, E>> {
-  return result => (isOk(result) ? Ok(mapper(result.value)) : result);
-}
-
-export function mapErr<V, From, To>(
-  mapper: (error: From) => To
-): Operator<Result<V, From>, Result<V, To>> {
-  return result => (isErr(result) ? Err(mapper(result.error)) : result);
+  return result => R.map(result, mapper);
 }
 
 /**
- * Returns alternative value if input `Result` is intance of `Err`
- * @template V inner `Ok` value type
- * @template E inner `Err` error type
- * @param {Mapper<E, V>} f function that recives `Err`s error and returns alternative value
- * @returns function with `Result` input and `V` output
+ * Creates an operator that transforms the `Err` value of a `Result` using a provided mapping function, or returns the unchanged `Ok`.
+ * @template V The type of the `Ok` value.
+ * @template From The original error type.
+ * @template To The new error type.
+ * @param {import("../../types").Mapper<From, To>} mapper A function to transform the error.
+ * @returns An operator that returns a new `Result` with the transformed error or the unchanged `Ok`.
+ */
+export function mapErr<V, From, To>(
+  mapper: (error: From) => To
+): Operator<Result<V, From>, Result<V, To>> {
+  return result => R.mapErr(result, mapper);
+}
+
+/**
+ * Creates an operator that returns an alternative value or executes a function if the input `Result` is an instance of `Err`.
+ * @template V The type of the `Ok` value.
+ * @template E The type of the `Err` error.
+ * @param {import("../../types").Mapper<E, V>} f A function that receives an `Err` error and returns an alternative value.
+ * @returns An operator that returns either the `Ok` value or an alternative value.
  */
 export function or<V, E>(f: (error: E) => V): Operator<Result<V, E>, V>;
 
 /**
- * Returns altenative value if input `Result` is instance of `Err`
- * @template V inner `Ok` value type
- * @param {V} value alternative value
- * @returns function with `Result` input and `V` output
+ * Creates an operator that returns a specified value if the input `Result` is an instance of `Err`.
+ * @template V The type of the `Ok` value.
+ * @param {V} value The alternative value to return.
+ * @returns An operator that returns either the `Ok` value or the specified alternative value.
  */
 export function or<V>(value: V): Operator<Result<V, any>, V>;
 
@@ -126,80 +118,60 @@ export function or<V>(value: V): Operator<Result<V, any>, V>;
 export function or<V, E>(
   fOrValue: ((error: E) => V) | V
 ): Operator<Result<V, E>, V> {
-  return (result: Result<V, E>): V =>
-    isOk(result) ? result.value
-    : isFunction(fOrValue) ? fOrValue(result.error)
-    : fOrValue;
+  // @ts-ignore
+  return (result: Result<V, E>): V => R.or(result, fOrValue);
 }
 
 /**
  * Turns a nested Result into a result of depth 1. This is for the Ok channel only. Input result should never exceed a depth of `MAX_UNFOLD_DEPTH`.
  * @template V inner Ok value type
  * @template E inner Err error type
- * @returns function that takes in nested result and returns unfolded result
+ * @returns An operator that takes a nested result and returns an unfolded result.
  * @see {@link RESULT_MAX_UNFOLD_DEPTH}
  */
 export function unfold<V, E>(): Operator<Result<V, E>, Unfold<Result<V, E>>> {
-  return result => {
-    if (isErr(result)) return result as Unfold<Result<V, E>>;
-
-    let inner = result.value;
-
-    for (let i = 0; i < RESULT_MAX_UNFOLD_DEPTH; i++) {
-      if (!isResult(inner)) break;
-      if (isErr(inner)) return inner as Unfold<Result<V, E>>;
-      inner = inner.value;
-    }
-
-    return Ok(inner) as Unfold<Result<V, E>>;
-  };
+  return result => R.unfold(result);
 }
 
 /**
  * Turns a nested `Result` into a result with 1 less depth. This unnesting occurs for the Ok channel.
  * @template V inner Ok value type
  * @template E inner Err error type
- * @returns function that takes in nested result and returns flattened result
+ * @returns An operator that takes a nested result and returns a flattened result.
  */
 export function flatten<V, E>(): Operator<Result<V, E>, Flatten<Result<V, E>>> {
-  return result => {
-    if (isErr(result) || !isResult(result.value) || isErr(result.value))
-      return result as Flatten<Result<V, E>>;
-
-    return result.value as Flatten<Result<V, E>>;
-  };
+  return result => R.flatten(result);
 }
 
 /**
- * Transforms & unwraps input Result. Used when you'd like to generate an error based of the inner Ok value of result (if there is one)
+ * Transforms & unwraps an input `Result`. Used when you'd like to generate an error based on the inner Ok value of the result, if there is one.
  * @template FromValue original Ok value type
- * @template FromError origin Err error type
+ * @template FromErr original Err error type
  * @template ToValue mapped Ok value type
- * @template ToError mapped Err value type
- * @param mapper
- * @returns function that takes origin Result and returns flattened result
+ * @template ToErr mapped Err error type
+ * @param {import("../../types").Mapper<FromValue, Result<ToValue, ToErr>>} mapper A function that maps the Ok value to a new Result.
+ * @returns An operator that takes an original Result and returns a transformed, potentially flattened result.
  * @see {@link map}
  * @see {@link unfold}
  */
-export function flatmap<FromValue, FromError, ToValue, ToError>(
-  mapper: (ok: FromValue) => Result<ToValue, ToError>
-): Operator<
-  Result<FromValue, FromError>,
-  Result<ToValue, FromError | FromValue>
-> {
-  return result =>
-    isOk(result) ?
-      (mapper(result.value) as Result<ToValue, FromError | FromValue>)
-    : result;
+export function flatmap<FromValue, FromErr, ToValue, ToErr>(
+  mapper: (ok: FromValue) => Result<ToValue, ToErr>
+): Operator<Result<FromValue, FromErr>, Result<ToValue, FromErr | FromValue>> {
+  return result => R.flatmap(result, mapper);
 }
 
-export function check<V, E, FailError>(
+/**
+ * Checks if the `Ok` value of a `Result` meets a specified condition. If the condition is met, the original `Result` is returned. If not, it returns an `Err` with a new error.
+ * @template V The type of the `Ok` value.
+ * @template E The original error type.
+ * @template FailErr The type of the new error when the check fails.
+ * @param {import("../../types").Predicate<V>} predicate A function that checks the `Ok` value against a condition.
+ * @param {FailErr} failError The error to return if the check fails.
+ * @returns An operator that returns the original `Result` if the check passes, or a new `Err` with the `failError`.
+ */
+export function check<V, E, FailErr>(
   predicate: (ok: V) => boolean,
-  failError: FailError
-): Operator<Result<V, E>, Result<V, E | FailError>> {
-  return result =>
-    isOk(result) ?
-      predicate(result.value) ? result
-      : Err(failError)
-    : result;
+  failError: FailErr
+): Operator<Result<V, E>, Result<V, E | FailErr>> {
+  return result => R.check(result, predicate, failError);
 }

@@ -1,7 +1,7 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { Fault } from "..";
 
-describe("Fault", () => {
+describe("Fault [types]", () => {
   it("should match type for Fault with code", () => {
     type MyFault = Fault<"ERROR_CODE">;
     const fault: MyFault = { code: "ERROR_CODE" };

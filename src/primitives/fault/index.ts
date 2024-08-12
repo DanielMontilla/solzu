@@ -77,3 +77,32 @@ export namespace Fault {
     : never;
   }[number];
 }
+
+export function Fault<F extends Fault.Any>(fault: F): F {
+  return fault;
+}
+
+/**
+ * Type guard to check if an object is of type Fault
+ * @param x the object to check
+ * @returns boolean indicating if the object is of type Fault
+ */
+export function isFault(x: unknown): x is Fault<string> {
+  return (
+    typeof x === "object" &&
+    x !== null &&
+    "code" in x &&
+    typeof (x as any).code === "string"
+  );
+}
+
+/**
+ * Type guard to check if an object is of type Fault.WithReason
+ * @param x the object to check
+ * @returns boolean indicating if the object is of type Fault.WithReason
+ */
+export function isFaultWithReason(
+  x: unknown
+): x is Fault.WithReason<string, unknown> {
+  return isFault(x) && "reason" in x;
+}

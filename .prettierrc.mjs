@@ -6,10 +6,9 @@ const config = {
   bracketSpacing: true,
   bracketSameLine: false,
   arrowParens: "avoid",
-  experimentalTernaries: true,
-  useTabs: false,
 
-  printWidth: 80,
+  printWidth: 96,
+  plugins: ["prettier-plugin-tailwindcss"],
 };
 
 export default config;

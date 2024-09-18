@@ -1,0 +1,88 @@
+{
+  "name": "solzu",
+  "version": "1.0.19",
+  "author": "Daniel Montilla",
+  "description": "collections of useful typescript stuff",
+  "homepage": "https://github.com/DanielMontilla/solzu#readme",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DanielMontilla/solzu"
+  },
+  "keywords": [
+    "typescript"
+  ],
+  "bugs": {
+    "url": "https://github.com/DanielMontilla/solzu/issues"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10",
+    "vitest": "^1.5.2"
+  },
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./dist/index.js",
+        "types": "./dist/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/index.cjs",
+        "type": "./dist/index.d.cts"
+      }
+    },
+    "./@maybe": {
+      "import": {
+        "default": "./dist/maybe/mod/index.js",
+        "types": "./dist/maybe/mod/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/maybe/mod/index.cjs",
+        "types": "./dist/maybe/mod/index.d.cts"
+      }
+    },
+    "./@maybe/fp": {
+      "import": {
+        "default": "./dist/maybe/fp/index.js",
+        "types": "./dist/maybe/fp/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/maybe/fp/index.cjs",
+        "types": "./dist/maybe/fp/index.d.cts"
+      }
+    },
+    "./@result": {
+      "import": {
+        "default": "./dist/result/mod/index.js",
+        "types": "./dist/result/mod/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/result/mod/index.cjs",
+        "types": "./dist/result/mod/index.d.cts"
+      }
+    },
+    "./@result/fp": {
+      "import": {
+        "default": "./dist/result/fp/index.js",
+        "types": "./dist/result/fp/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/result/fp/index.cjs",
+        "types": "./dist/result/fp/index.d.cts"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ]
+}

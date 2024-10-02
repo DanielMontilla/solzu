@@ -67,3 +67,5 @@ export namespace Effect {
    */
   export type Unary<Input> = (input: Input) => any;
 }
+
+export type Memoized<T> = () => T;

@@ -15,3 +15,5 @@ export function isNumber(x: unknown): x is number {
 export function isInt(x: unknown): x is number {
   return isNumber(x) && Number.isInteger(x);
 }
+
+export type Range = { min: number; max: number } | [min: number, max: number];

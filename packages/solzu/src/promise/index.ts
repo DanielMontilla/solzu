@@ -28,10 +28,7 @@ export function delay<V>(ms: number, value: V | undefined = undefined) {
  * @returns {Promise<T>} A promise that resolves to the result of the given promise,
  * but only after at least the specified delay duration.
  */
-export async function enforceDelay<T>(
-  fn: () => Promise<T>,
-  duration: number
-): Promise<T> {
+export async function enforceDelay<T>(fn: () => Promise<T>, duration: number): Promise<T> {
   const [result] = await Promise.all([fn(), delay(duration)]);
   return result;
 }

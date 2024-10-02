@@ -16,9 +16,7 @@ describe("Fault [types]", () => {
       reason: "Some reason",
     };
 
-    expectTypeOf(faultWithReason).toMatchTypeOf<
-      Fault.WithReason<"ERROR_CODE", string>
-    >();
+    expectTypeOf(faultWithReason).toMatchTypeOf<Fault.WithReason<"ERROR_CODE", string>>();
   });
 
   it("should match type for Fault with string reason", () => {
@@ -74,10 +72,7 @@ describe("Fault [types]", () => {
   });
 
   it("should generate a union of provided faults", () => {
-    type Faults = [
-      Fault<"ERROR_CODE1">,
-      Fault.WithReason<"ERROR_CODE2", string>,
-    ];
+    type Faults = [Fault<"ERROR_CODE1">, Fault.WithReason<"ERROR_CODE2", string>];
     type UnionOfFaults = Fault.Of<Faults>;
 
     const fault1: UnionOfFaults = { code: "ERROR_CODE1" };

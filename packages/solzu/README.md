@@ -1,4 +1,4 @@
-# ⚠️ This project has [moved](https://github.com/montflow/montflow)
+# ⚠️ This project has [moved](https://github.com/montflow/montflow/tree/master/packages/core)
 
 ---
 
